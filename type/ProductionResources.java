@@ -4,5 +4,6 @@ public enum ProductionResources {
     Talent,
     Cloud, 
     Patent,
-    Data
+    Data,
+    Null
 }
