@@ -7,7 +7,11 @@ public class Player {
     private int score;
     private int PlayerNumber;
     private PlayerRole Role;
-    private GamePlan gamePlan;
+    public void setRole(PlayerRole role) {
+        Role = role;
+    }
+
+    private gameInitiallization gameInitiallization;
     private ArrayList<ResourceCard> myCards;
     
     public Player(int PlayerNumber, PlayerRole Role){

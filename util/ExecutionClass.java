@@ -2,13 +2,13 @@ package util;
 import javafx.stage.Stage;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-
+import javafx.scene.layout.BorderPane;
 public class ExecutionClass extends Application {
+    private BorderPane currentPane = new BorderPane();
+    private gameInitiallization gameInitiallization = new gameInitiallization(currentPane);
     @Override
     public void start(Stage primaryStage){
-        Pane pane = new drawMap();
-        Scene scene = new Scene(pane, 350, 350);
+        Scene scene = new Scene(currentPane, 850, 650);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

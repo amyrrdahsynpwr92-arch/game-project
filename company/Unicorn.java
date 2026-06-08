@@ -18,6 +18,8 @@ public class Unicorn extends ComanyStructure {
     public void drawCompany(){
         shape.setWidth(20);
         shape.setHeight(20);
+        shape.setArcWidth(10);
+        shape.setArcHeight(10);
         shape.setFill(color);
         shape.setStroke(Color.BLACK);
         this.getChildren().add(shape);

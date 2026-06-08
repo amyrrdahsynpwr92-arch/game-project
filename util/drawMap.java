@@ -1,5 +1,7 @@
 package util;
 import java.util.Random;
+
+import javafx.animation.FadeTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
@@ -9,7 +11,9 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import type.*;
 import graph.*; 
 
@@ -18,7 +22,14 @@ public class drawMap extends Pane{
     private ImageView background = new ImageView(new Image(getClass().getResourceAsStream("/images/bg.png")));
     private DoubleProperty hGap = new SimpleDoubleProperty(50);
     private DoubleProperty vGap = new SimpleDoubleProperty(50);
-    public drawMap(){
+    FadeTransition fadeTransition = new FadeTransition();
+    public drawMap(BorderPane currentPane){
+        fadeTransition.setFromValue(0.0);
+        fadeTransition.setToValue(1.0);
+        fadeTransition.setDuration(Duration.millis(4000));
+        fadeTransition.setNode(currentPane);
+        fadeTransition.setCycleCount(1);
+        fadeTransition.play();
         nodes = new node[6][6];
         drawGraph();
     }
@@ -54,20 +65,20 @@ public class drawMap extends Pane{
             for(int j=0; j<5; j++){
                 edge e = new edge(nodes[i][j], nodes[i][j+1]);
                 this.getChildren().add(e);
-                e.getEdgeShape().startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.getEdgeShape().startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
-                e.getEdgeShape().endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j+1)));
-                e.getEdgeShape().endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
+                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j+1)));
+                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
             }
         }
         for(int j=0; j<6; j++){
             for(int i=0; i<5; i++){
                 edge e = new edge(nodes[i][j], nodes[i+1][j]);
                 this.getChildren().add(e);
-                e.getEdgeShape().startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.getEdgeShape().startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
-                e.getEdgeShape().endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.getEdgeShape().endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i+1)));
+                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
+                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
+                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i+1)));
             }   
         }    
         for(int i=0; i<6; i++){

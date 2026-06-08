@@ -23,14 +23,14 @@ public class Sector extends Pane{
     private ProductionResources ResourceType;
     private int number;
     private String name;
-    private GamePlan gamePlan;  
-    private Color color; 
-    private ImageView effect = new ImageView(new Image(getClass().getResourceAsStream("/images/effect.png")));
+    private gameInitiallization gameInitiallization;  
+    private Color color;
+    private static final Image image_address = new Image(Sector.class.getResourceAsStream("/images/effect.png")); 
+    private ImageView effect = new ImageView(image_address);
     
     public Sector(SectorType type, double x, double y){
         this.type = type;
         this.number = new Random().nextInt(11) + 2;
-       // this.gamePlan = gamePlan;
         SetSectorType();
         SetColor();
         setSectorName();

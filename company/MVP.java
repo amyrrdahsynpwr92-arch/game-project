@@ -1,5 +1,4 @@
 package company;
-
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -18,6 +17,8 @@ public class MVP extends ComanyStructure {
     public void drawCompany(){
         shape.setWidth(15);
         shape.setHeight(15);
+        shape.setArcWidth(10);
+        shape.setArcHeight(10);
         shape.setFill(color);
         shape.setStroke(Color.BLACK);
         this.getChildren().add(shape);
