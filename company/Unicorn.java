@@ -10,18 +10,19 @@ public class Unicorn extends ComanyStructure {
     }
     public Unicorn(){
         this.color = Color.GREEN;
-        setLayoutX(-10);
-        setLayoutY(-10);
+        setLayoutX(-17);
+        setLayoutY(-17);
         drawCompany();
     }
     @Override
     public void drawCompany(){
-        shape.setWidth(20);
-        shape.setHeight(20);
-        shape.setArcWidth(10);
-        shape.setArcHeight(10);
+        shape.setWidth(35);
+        shape.setHeight(35);
+        shape.setArcWidth(15);
+        shape.setArcHeight(15);
         shape.setFill(color);
         shape.setStroke(Color.BLACK);
+        shape.setStrokeWidth(3);
         this.getChildren().add(shape);
     }
 }

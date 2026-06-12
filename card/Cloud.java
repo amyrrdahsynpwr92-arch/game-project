@@ -1,11 +1,11 @@
 package card;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import type.ProductionResources;
 
 public class Cloud extends ResourceCard {
     public Cloud(){
-        this.background_color = Color.BLUE;
-        this.title_of_resource = new Text("Cloud");
-        arrangeComponents();
+        this.type = ProductionResources.Cloud;
+        this.symbol = new ImageView(new Image(getClass().getResourceAsStream("/images/cards/cloud.png")));
     }
 }

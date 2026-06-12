@@ -1,26 +1,24 @@
 package company;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Circle;
 
 public class MVP extends ComanyStructure {
-    private Rectangle shape = new Rectangle();
-    public Rectangle GetShape() {
+    private Circle shape = new Circle();
+    public Circle GetShape() {
         return shape;
     }
     public MVP(){
         this.color = Color.RED;
-        setLayoutX(-7.5);
-        setLayoutY(-7.5);
+        setLayoutX(-2);
+        setLayoutY(-2);
         drawCompany();
     }
     @Override
     public void drawCompany(){
-        shape.setWidth(15);
-        shape.setHeight(15);
-        shape.setArcWidth(10);
-        shape.setArcHeight(10);
+        shape.setRadius(13);
         shape.setFill(color);
         shape.setStroke(Color.BLACK);
+        shape.setStrokeWidth(3);
         this.getChildren().add(shape);
     }
 }

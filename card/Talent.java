@@ -1,11 +1,11 @@
 package card;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import type.ProductionResources;
 
 public class Talent extends ResourceCard {
     public Talent(){
-        this.background_color = Color.BLUEVIOLET;
-        this.title_of_resource = new Text("Talent");
-        arrangeComponents();
+        this.type = ProductionResources.Talent;
+        this.symbol = new ImageView(new Image(getClass().getResourceAsStream("/images/cards/talent.png")));
     }
 }

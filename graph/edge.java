@@ -1,61 +1,124 @@
 package graph;
-import company.*;
+import java.util.ArrayList;
 import card.*;
+import util.*;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
-public class edge extends Line {
+public class Edge extends Line {
     private Line edgeShape;
     private boolean hasPartnership;
-    private node start;
-    private node end;
-    public edge(node start, node end){
+    private Node start;
+    private Node end;
+    private int numberOfPlayers;
+    private Handle_PreGame handle_preGame;
+    private Player currentPlayer;
+    private ArrayList<Edge> edges = new ArrayList<>();
+    private int edgeNumber;
+    private Integer maxDistance = 0;
+    private static final Media soundAddress = new Media(Edge.class.getResource("/voices/error.mp3").toExternalForm());
+    private MediaPlayer errorSound = new MediaPlayer(soundAddress);
+    private Handle_TurningGame handle_TurningGame;
+    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber){
+        this.handle_preGame = handle_PreGame;
+        this.handle_TurningGame = handle_TurningGame;
         this.start = start;
         this.end = end;
-        this.setStrokeWidth(3);
+        this.edgeNumber = edgeNumber;
+        this.setStrokeWidth(6);
         this.setStroke(Color.WHITE);
         this.setOnMouseClicked(e -> drawPartnership());
     }
     public void drawPartnership(){
         Capital capital = null;
         Patent patent = null;
-        // ArrayList<ResourceCard> cards = player.getMyCards();
-        // for(ResourceCard card: cards){
-        //     if(card instanceof Capital && capital == null)
-        //         capital = (Capital)card;
-        //     else if(card instanceof Patent && patent == null)
-        //         patent = (Patent)card;
-        // }
-        //if(capital != null && patent != null && validate()){
-            // nodePartnership = new Partnership(start, end);
-            // this.getChildren().clear();
-            // this.getChildren().add(nodePartnership);
-            this.setStroke(Color.PURPLE);
-            this.setStrokeWidth(5);
-            
-            // cards.remove(capital);
-            // cards.remove(patent);
-            // player.setMyCards(cards);
-            // hasPartnership = true;
-        //}
+        ArrayList<ResourceCard> cards = new ArrayList<>();
+        if(handle_preGame.isPreGame()){
+            currentPlayer = handle_preGame.getCurrentPlayer();
+            if(validate()){
+                handle_preGame.NotifyPartnership();
+                this.setStroke(handle_preGame.getCurrentColor());
+                this.setStrokeWidth(10);
+                hasPartnership = true;
+                handle_preGame.setTurn(1);
+            }else{
+                errorSound.stop(); // it may is playing already
+                errorSound.play();
+            }
+        }
+        else if(handle_TurningGame.isTurning_Game()){
+            handle_TurningGame.Notify();
+            currentPlayer = handle_TurningGame.getCurrentPlayer();
+            cards = currentPlayer.getMyCards();
+            for(ResourceCard card: cards){
+                if(card instanceof Capital)
+                    capital = (Capital)card;
+                else if(card instanceof Patent)
+                    patent = (Patent)card;
+                if(capital != null && patent != null)
+                    break;
+            }
+            this.setStroke(currentPlayer.getColor());
+            if((capital != null && patent != null)){
+                this.setStroke(Color.RED);
+                this.setStrokeWidth(10);
+                if(capital != null)cards.remove(capital);
+                cards.remove(patent);
+                currentPlayer.setMyCards(cards);
+                hasPartnership = true;
+                if(new longestPath(edges, this, maxDistance).bfs()){
+                    currentPlayer.setScore(currentPlayer.getScore() + 2);
+                }
+            }else{
+                errorSound.stop(); // it may is playing already
+                errorSound.play();
+            }
+        }
     }
     private boolean validate(){
-        if(start.getChildren().get(0) instanceof MVP || start.getChildren().get(0) instanceof Unicorn || end.getChildren().get(0) instanceof MVP || end.getChildren().get(0) instanceof Unicorn){
-            if(start.getLinkedToPartnership())start.setLinkedToPartnership(true);
-            if(end.getLinkedToPartnership())end.setLinkedToPartnership(true);
+        Color playerColor = currentPlayer.getColor();
+        if((start.getHasMVP() && playerColor == (start.getNodeMVP().GetShape()).getFill()) || (end.getHasMVP() && playerColor == (end.getNodeMVP().GetShape()).getFill()) && handle_preGame.getTurn() == 2){
+            start.addPartnership(playerColor);
+            end.addPartnership(playerColor);
             return true;   
         }
-        if(start.getLinkedToPartnership() || end.getLinkedToPartnership()){
-            if(!start.getLinkedToPartnership())start.setLinkedToPartnership(true);
-            if(!end.getLinkedToPartnership())end.setLinkedToPartnership(true);
-            return true;
-        } 
+        for(Color color: start.getLinkedPartnerships()){
+            if(color == playerColor && handle_preGame.getTurn() == 2)
+                return true;
+        }
+        for(Color color: end.getLinkedPartnerships()){
+            if(color == playerColor && handle_preGame.getTurn() == 2)
+                return true;
+        }
         return false;
     }
     public boolean getHasPartnership() {
         return hasPartnership;
     }
+    public Node getStart() {
+        return start;
+    }
+    public Node getEnd() {
+        return end;
+    }
     public Line getEdgeShape() {
         return edgeShape;
+    }
+    public int getEdgeNumber() {
+        return edgeNumber;
+    }
+    public void setEdges(ArrayList<Edge> edges) {
+        this.edges = edges;
+    }
+    public int getNumberOfPlayers() {
+        return numberOfPlayers;
+    }
+    public Handle_PreGame getHandle_preGame() {
+        return handle_preGame;
+    }
+    public ArrayList<Edge> getEdges() {
+        return edges;
     }
 }

@@ -1,12 +1,11 @@
 package card;
-
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import type.ProductionResources;
 
 public class Data extends ResourceCard {
     public Data(){
-        this.background_color = Color.GREEN;
-        this.title_of_resource = new Text("Data");
-        arrangeComponents();
+        this.type = ProductionResources.Data;
+        this.symbol = new ImageView(new Image(getClass().getResourceAsStream("/images/cards/data.png")));
     }
 }

@@ -5,7 +5,7 @@ import graph.*;
 
 public class Partnership extends ComanyStructure {
     private Line shape = new Line();
-    public Partnership(node start, node end){
+    public Partnership(Node start, Node end){
         shape.setStartX(start.getLayoutX());
         shape.setStartY(start.getLayoutY());
         shape.setEndX(end.getLayoutX());

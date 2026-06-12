@@ -1,11 +1,11 @@
 package card;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import type.ProductionResources;
 
 public class Patent extends ResourceCard {
     public Patent(){
-        this.background_color = Color.RED;
-        this.title_of_resource = new Text("Patent");
-        arrangeComponents();
+        this.type = ProductionResources.Patent;
+        this.symbol = new ImageView(new Image(getClass().getResourceAsStream("/images/cards/patent.png")));
     }
 }

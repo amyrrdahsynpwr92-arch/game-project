@@ -2,6 +2,7 @@ package util;
 import java.util.ArrayList;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -15,16 +16,21 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 public class gameInitiallization{
     private BorderPane currentPane;
     private ArrayList<Player> players = new ArrayList<>();
     private int numberOfPlayers;
-    private ImageView background = new ImageView(new Image(getClass().getResourceAsStream("/images/bg2.png")));
-    private ImageView image1 = new ImageView(new Image(getClass().getResourceAsStream("/images/the_hacker_ceo.png")));
-    private ImageView image2 = new ImageView(new Image(getClass().getResourceAsStream("/images/the_tech_guru_cto.png")));
-    private ImageView image3 = new ImageView(new Image(getClass().getResourceAsStream("/images/the_vc_funded.png")));
-    private ImageView image4 = new ImageView(new Image(getClass().getResourceAsStream("/images/null.jpg")));
+    private ImageView background = new ImageView(new Image(getClass().getResourceAsStream("/images/backgrounds/bg2.png")));
+    private ImageView cover = new ImageView(new Image(getClass().getResourceAsStream("/images/backgrounds/cover.png")));
+    private ImageView image1 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/the_hacker_ceo.png")));
+    private ImageView image2 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/the_tech_guru_cto.png")));
+    private ImageView image3 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/the_vc_funded.png")));
+    private ImageView image4 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/null.jpg")));
+    private MediaPlayer clickSound = new MediaPlayer(new Media(getClass().getResource("/voices/click.mp3").toExternalForm()));
+    private int playerIndex = 0;
     
     public int getNumberOfPlayers() {
         return numberOfPlayers;
@@ -33,10 +39,41 @@ public class gameInitiallization{
         this.currentPane = currentPane;
         background.fitWidthProperty().bind(currentPane.widthProperty());
         background.fitHeightProperty().bind(currentPane.heightProperty());
-        new loadGame();
+        new setCover();
+    }
+    class setCover {
+        public setCover() {
+            cover.fitWidthProperty().bind(currentPane.widthProperty());
+            cover.fitHeightProperty().bind(currentPane.heightProperty());
+            FadeTransition fade1 = new FadeTransition(Duration.seconds(1), currentPane);
+            FadeTransition fade2 = new FadeTransition(Duration.seconds(1), currentPane);
+            PauseTransition pause1 = new PauseTransition(Duration.seconds(2));
+            PauseTransition pause2 = new PauseTransition(Duration.seconds(2));
+            currentPane.setCenter(cover);
+            fade1.setFromValue(0.0);
+            fade1.setToValue(1.0);
+            currentPane.setOpacity(0);
+            pause1.play();
+            pause1.setOnFinished(e -> {
+                fade1.play();
+            });
+            fade1.setOnFinished(e -> {
+                pause2.play();
+            });
+            pause2.setOnFinished(e -> {
+                fade2.setFromValue(1.0);
+                fade2.setToValue(0.0);
+                fade2.play();
+            });
+            fade2.setOnFinished(e -> {
+                currentPane.getChildren().clear();
+                currentPane.getChildren().add(background);
+                new loadGame();
+            });
+        }
     }
     class loadGame extends VBox{
-        private FadeTransition fadeTransition = new FadeTransition(Duration.millis(1000), currentPane);
+        private FadeTransition fadeTransition = new FadeTransition(Duration.millis(2000), currentPane);
         private Text text = new Text("play the previous game?");
         private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
@@ -59,19 +96,24 @@ public class gameInitiallization{
             paneForButtons.getChildren().addAll(btYes, btNo);
             paneForButtons.setAlignment(Pos.CENTER);
             fadeTransition.setCycleCount(1);
-            fadeTransition.setFromValue(1.0);
-            fadeTransition.setToValue(0.0);
-            fadeTransition.setAutoReverse(false);
+            fadeTransition.setFromValue(0.0);
+            fadeTransition.setToValue(1.0);
             this.setAlignment(Pos.CENTER);
             this.setPadding(new Insets(40, 0, 40, 0));
             this.getChildren().addAll(paneForText, paneForButtons);
-            currentPane.getChildren().add(background);
+            
             currentPane.setCenter(this);
+            fadeTransition.play();
             btYes.setOnAction(e -> {
+                clickSound.play();
             });
             btNo.setOnAction(e -> {
+                clickSound.play();
+                fadeTransition.setFromValue(1.0);
+                fadeTransition.setToValue(0.0);
                 fadeTransition.play();
                 fadeTransition.setOnFinished(event -> {
+                    clickSound.stop();
                     currentPane.getChildren().clear();
                     currentPane.getChildren().add(background);
                     currentPane.setCenter(new SetPlayersNumber());
@@ -122,10 +164,12 @@ public class gameInitiallization{
             this.setPadding(new Insets(40, 0, 40, 0));
             this.getChildren().addAll(paneForText, paneForButtons);
             bt1.setOnAction(e -> {
+                clickSound.play();
                 fadeTransition.setFromValue(1.0);
                 fadeTransition.setToValue(0.0);
                 fadeTransition.play();
                 fadeTransition.setOnFinished(event -> {
+                    clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt1.getText());
                     for(int i=0; i<numberOfPlayers; i++){
                         players.add(new Player(i+1, PlayerRole.Null));
@@ -135,11 +179,12 @@ public class gameInitiallization{
                 });
             });
             bt2.setOnAction(e -> {
+                clickSound.play();
                 fadeTransition.setFromValue(1.0);
                 fadeTransition.setToValue(0.0);
                 fadeTransition.play();
                 fadeTransition.setOnFinished(event -> {
-                    bt2.setDisable(true);
+                    clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt2.getText());
                     for(int i=0; i<numberOfPlayers; i++){
                         players.add(new Player(i+1, PlayerRole.Null));
@@ -149,11 +194,13 @@ public class gameInitiallization{
                 });
             });
             bt3.setOnAction(e -> {
+                clickSound.play();
                 bt3.setDisable(true);
                 fadeTransition.setFromValue(1.0);
                 fadeTransition.setToValue(0.0);
                 fadeTransition.play();
                 fadeTransition.setOnFinished(event -> {
+                    clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt3.getText());
                     for(int i=0; i<numberOfPlayers; i++){
                         players.add(new Player(i+1, PlayerRole.Null));
@@ -212,73 +259,88 @@ public class gameInitiallization{
             paneForScroll.setFitToHeight(true);
             this.getChildren().addAll(paneForText, paneForScroll);
             image1.setOnMouseClicked(e -> {
+                if(clickSound.getStatus() == MediaPlayer.Status.PLAYING)clickSound.stop();
+                clickSound.play();
                 paneForImages.getChildren().remove(image1);
                 if(numberOfPlayers > 1){
-                    players.get(4-numberOfPlayers).setRole(PlayerRole.The_Hacker_CEO);
+                    players.get(playerIndex).setRole(PlayerRole.The_Hacker_CEO);
+                    playerIndex++;
                     numberOfPlayers--;
-                    text.setText("The role of player " + Integer.toString(5-numberOfPlayers) + ":");
+                    text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
                 }else if(numberOfPlayers == 1){
                     fadeTransition.setFromValue(1.0);
                     fadeTransition.setToValue(0.0);
                     fadeTransition.setDuration(Duration.millis(1000));
                     fadeTransition.setOnFinished(event -> {
+                        clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane));
+                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
                 }
             });
             image2.setOnMouseClicked(e -> {
+                if(clickSound.getStatus() == MediaPlayer.Status.PLAYING)clickSound.stop();
+                clickSound.play();
                 paneForImages.getChildren().remove(image2);
                 if(numberOfPlayers > 1){
-                    players.get(4-numberOfPlayers).setRole(PlayerRole.The_Teck_GURU);
+                    players.get(playerIndex).setRole(PlayerRole.The_Teck_GURU);
+                    playerIndex++;
                     numberOfPlayers--;
-                    text.setText("The role of player " + Integer.toString(5-numberOfPlayers) + ":");
+                    text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
                 }else if(numberOfPlayers == 1){
                     fadeTransition.setFromValue(1.0);
                     fadeTransition.setToValue(0.0);
                     fadeTransition.setDuration(Duration.millis(1000));
                     fadeTransition.setOnFinished(event -> {
+                        clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane));
+                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
                 }
             });
             image3.setOnMouseClicked(e -> {
+                if(clickSound.getStatus() == MediaPlayer.Status.PLAYING)clickSound.stop();
+                clickSound.play();
                 paneForImages.getChildren().remove(image3);
                 if(numberOfPlayers > 1){
-                    players.get(4-numberOfPlayers).setRole(PlayerRole.The_VC_Funded);
+                    players.get(playerIndex).setRole(PlayerRole.The_VC_Funded);
+                    playerIndex++;
                     numberOfPlayers--;
-                    text.setText("The role of player " + Integer.toString(5-numberOfPlayers) + ":");
+                    text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
                 }else if(numberOfPlayers == 1){
                     fadeTransition.setFromValue(1.0);
                     fadeTransition.setToValue(0.0);
                     fadeTransition.setDuration(Duration.millis(1000));
                     fadeTransition.setOnFinished(event -> {
+                        clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane));
+                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
                 }
             });
             image4.setOnMouseClicked(e -> {
+                if(clickSound.getStatus() == MediaPlayer.Status.PLAYING)clickSound.stop();
+                clickSound.play();
                 paneForImages.getChildren().remove(image4);
                 if(numberOfPlayers > 1){
-                    players.get(4-numberOfPlayers).setRole(PlayerRole.Null);
+                    players.get(playerIndex).setRole(PlayerRole.Null);
+                    playerIndex++;
                     numberOfPlayers--;
-                    text.setText("The role of player " + Integer.toString(5-numberOfPlayers) + ":");
+                    text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
                 }else if(numberOfPlayers == 1){
                     fadeTransition.setFromValue(1.0);
                     fadeTransition.setToValue(0.0);
                     fadeTransition.setDuration(Duration.millis(1000));
                     fadeTransition.setOnFinished(event -> {
+                        clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane));
-                        numberOfPlayers = players.size();
+                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
                     });
                     fadeTransition.play();
                 }

@@ -1,11 +1,11 @@
 package card;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import type.*;
 
 public class Capital extends ResourceCard {
     public Capital(){
-        this.background_color = Color.GOLD;
-        this.title_of_resource = new Text("Capital");
-        arrangeComponents();
+        this.type = ProductionResources.Capital;
+        this.symbol = new ImageView(new Image(getClass().getResourceAsStream("/images/cards/capital.png")));
     }
 }
