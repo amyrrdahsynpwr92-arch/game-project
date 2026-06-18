@@ -1,5 +1,7 @@
 package util;
 import java.util.ArrayList;
+
+import game_board.drawMap;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -18,6 +20,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import game_board.drawBoard;
+import card.*;
 
 public class gameInitiallization{
     private BorderPane currentPane;
@@ -172,7 +176,7 @@ public class gameInitiallization{
                     clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt1.getText());
                     for(int i=0; i<numberOfPlayers; i++){
-                        players.add(new Player(i+1, PlayerRole.Null));
+                        players.add(new Player(i+1));
                     }
                     currentPane.getChildren().clear();
                     currentPane.setCenter(new setRoles());
@@ -187,7 +191,7 @@ public class gameInitiallization{
                     clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt2.getText());
                     for(int i=0; i<numberOfPlayers; i++){
-                        players.add(new Player(i+1, PlayerRole.Null));
+                        players.add(new Player(i+1));
                     }
                     currentPane.getChildren().clear();
                     currentPane.setCenter(new setRoles());
@@ -203,7 +207,7 @@ public class gameInitiallization{
                     clickSound.stop();
                     numberOfPlayers = Integer.parseInt(bt3.getText());
                     for(int i=0; i<numberOfPlayers; i++){
-                        players.add(new Player(i+1, PlayerRole.Null));
+                        players.add(new Player(i+1));
                     }
                     currentPane.getChildren().clear();
                     currentPane.setCenter(new setRoles());
@@ -264,6 +268,8 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image1);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_Hacker_CEO);
+                    players.get(playerIndex).getMyCards().add(new Capital());
+                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -274,7 +280,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
+                        new drawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -286,6 +292,8 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image2);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_Teck_GURU);
+                    players.get(playerIndex).getMyCards().add(new Capital());
+                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -296,7 +304,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
+                        new drawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -308,6 +316,8 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image3);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_VC_Funded);
+                    players.get(playerIndex).getMyCards().add(new Capital());
+                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -318,7 +328,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
+                        new drawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -330,6 +340,8 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image4);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.Null);
+                    players.get(playerIndex).getMyCards().add(new Capital());
+                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -340,7 +352,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        currentPane.setCenter(new drawMap(currentPane, players.size(), players));
+                        new drawBoard(currentPane, players);
                     });
                     fadeTransition.play();
                 }

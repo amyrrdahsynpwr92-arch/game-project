@@ -5,15 +5,14 @@ import java.util.ArrayList;
 import javafx.scene.paint.Color;
 
 public class Player {
-    private int score;
+    private int score = -1;
     private int PlayerNumber;
     private PlayerRole Role;
     private Color color;
     private ArrayList<ResourceCard> myCards = new ArrayList<ResourceCard>();
     
-    public Player(int PlayerNumber, PlayerRole Role){
+    public Player(int PlayerNumber){
         this.PlayerNumber = PlayerNumber;
-        this.Role = Role;
         setColor();
     }
 
@@ -55,6 +54,12 @@ public class Player {
 
     public void setRole(PlayerRole role) {
         Role = role;
+    }
+    public PlayerRole getRole() {
+        return Role;
+    }
+    public int getPlayerNumber(){
+        return PlayerNumber;
     }
 
 }

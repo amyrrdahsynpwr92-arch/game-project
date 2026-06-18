@@ -1,9 +1,8 @@
-package util;
+package game_board;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Random;
-import javafx.animation.FadeTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
@@ -13,34 +12,40 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
-import type.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import set_undo_and_redo.drawUndoButton;
+import set_undo_and_redo.saveStages;
+import javafx.scene.text.Font;
+import util.Handle_PreGame;
+import util.Handle_TurningGame;
+import util.Player;
+import util.Sector;
 import graph.*; 
 import card.*; 
+import javafx.scene.shape.Rectangle;
 
-public class drawMap extends Pane{
+public class Map extends Pane{
     private Node[][] nodes;
     private ImageView background = new ImageView(new Image(getClass().getResourceAsStream("/images/backgrounds/bg.png")));
     private DoubleProperty hGap = new SimpleDoubleProperty(50);
     private DoubleProperty vGap = new SimpleDoubleProperty(50);
-    FadeTransition fadeTransition = new FadeTransition();
     private int numberOfPlayers;
     private Handle_PreGame handle_preGame;
     private Handle_TurningGame handle_TurningGame;
     private ArrayList<Sector> sectors = new ArrayList<>();
-    public drawMap(BorderPane currentPane, int numberOfPlayers, ArrayList<Player> players){
+    private drawBoard board;
+    private drawUndoButton undoButton; 
+    private saveStages stages;
+    public Map(int numberOfPlayers, ArrayList<Player> players, drawBoard board){
         this.numberOfPlayers = numberOfPlayers;
         this.handle_TurningGame = new Handle_TurningGame(players);
         handle_preGame = new Handle_PreGame(players, handle_TurningGame);
-        fadeTransition.setFromValue(0.0);
-        fadeTransition.setToValue(1.0);
-        fadeTransition.setDuration(Duration.millis(6000));
-        fadeTransition.setNode(currentPane);
-        fadeTransition.setCycleCount(1);
-        fadeTransition.play();
         nodes = new Node[6][6];
+        this.board = board;
+        stages = new saveStages();
+        undoButton = new drawUndoButton(this, stages, board.getCurrentPane());
         drawGraph();
     }
     public void drawGraph(){
@@ -67,7 +72,7 @@ public class drawMap extends Pane{
         }
         for(int i=0; i<6; i++){
             for(int j=0; j<6; j++){
-                nodes[i][j] = new Node(j, i, handle_preGame, handle_TurningGame, sectors);
+                nodes[i][j] = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, stages, undoButton);
                 nodes[i][j].layoutXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
                 nodes[i][j].layoutYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
                 nodes[i][j].getNodeShape().radiusProperty().bind(getWidth() > getHeight() ? widthProperty().divide(70) : heightProperty().divide(70));
@@ -76,7 +81,7 @@ public class drawMap extends Pane{
         ArrayList<Edge> edges = new ArrayList<>();
         for(int i=0; i<6; i++){
             for(int j=0; j<5; j++){
-                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*5+j);
+                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*5+j, board, stages, undoButton);
                 this.getChildren().add(e);
                 edges.add(e);
                 e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
@@ -87,7 +92,7 @@ public class drawMap extends Pane{
         }
         for(int j=0; j<6; j++){
             for(int i=0; i<5; i++){
-                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*5+i);
+                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*5+i, board, stages, undoButton);
                 this.getChildren().add(e);
                 edges.add(e);
                 e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
@@ -106,5 +111,35 @@ public class drawMap extends Pane{
                 this.getChildren().add(n);
             }
         }
+        //new drawSourcesInformation(this);
     }
+    // class drawSourcesInformation extends Pane{
+    //     private DoubleProperty gap = new SimpleDoubleProperty(50);
+    //     Pane pane;
+    //     public drawSourcesInformation(Pane pane){
+    //         this.pane = pane;
+    //         gap.bind(pane.widthProperty().divide(6.7));
+    //         //this.layoutXProperty().bind(widthProperty().subtract(gap.multiply(5)).divide(2).add(gap.multiply(5)));
+    //        // this.layoutYProperty().bind(heightProperty().subtract(gap.multiply(5)).divide(2));
+    //         arrangeComponents();
+    //     }
+    //     private void arrangeComponents(){
+    //         List<Color> colors = Arrays.asList(Color.YELLOW, Color.BLUE, Color.GREEN, Color.RED, Color.PURPLE);
+    //         List<String> titles = Arrays.asList("Capital", "Cloud", "Data", "Patent", "Talent");
+    //         for(int i=0; i<5; i++){
+    //             HBox paneForComponent = new HBox(5);
+    //             Rectangle rec = new Rectangle();
+    //             rec.setWidth(10);
+    //             rec.setHeight(10);
+    //             rec.setFill(colors.get(i));
+    //             Text text = new Text(titles.get(i));
+    //             text.setFill(Color.WHITE);
+    //             text.setFont(Font.font(10));
+    //             paneForComponent.getChildren().addAll(rec, text);
+    //             paneForComponent.layoutXProperty().bind(pane.widthProperty().subtract(gap.multiply(5)).divide(2).add(gap.multiply(i)));
+    //             paneForComponent.layoutYProperty().bind(pane.heightProperty().subtract(gap.multiply(5)).divide(2).add(gap.multiply(5)));  
+    //             pane.getChildren().add(paneForComponent);
+    //         }
+    //     }
+    // }
 }

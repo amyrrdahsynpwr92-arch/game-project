@@ -1,11 +1,15 @@
 package graph;
 import java.util.ArrayList;
 import card.*;
+import game_board.drawBoard;
 import util.*;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import set_undo_and_redo.drawUndoButton;
+import set_undo_and_redo.saveStages;
+import javafx.application.Platform;
 
 public class Edge extends Line {
     private Line edgeShape;
@@ -21,7 +25,10 @@ public class Edge extends Line {
     private static final Media soundAddress = new Media(Edge.class.getResource("/voices/error.mp3").toExternalForm());
     private MediaPlayer errorSound = new MediaPlayer(soundAddress);
     private Handle_TurningGame handle_TurningGame;
-    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber){
+    private drawBoard board;
+    private drawUndoButton undoButton; 
+    private saveStages stages;
+    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, drawBoard board, saveStages stages, drawUndoButton undoButton){
         this.handle_preGame = handle_PreGame;
         this.handle_TurningGame = handle_TurningGame;
         this.start = start;
@@ -29,6 +36,9 @@ public class Edge extends Line {
         this.edgeNumber = edgeNumber;
         this.setStrokeWidth(6);
         this.setStroke(Color.WHITE);
+        this.board = board;
+        this.stages = stages;
+        this.undoButton = undoButton;
         this.setOnMouseClicked(e -> drawPartnership());
     }
     public void drawPartnership(){
@@ -43,6 +53,7 @@ public class Edge extends Line {
                 this.setStrokeWidth(10);
                 hasPartnership = true;
                 handle_preGame.setTurn(1);
+                stages.addStage(board.getMap());
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -61,6 +72,7 @@ public class Edge extends Line {
                     break;
             }
             this.setStroke(currentPlayer.getColor());
+            stages.addStage(board.getMap());
             if((capital != null && patent != null)){
                 this.setStroke(Color.RED);
                 this.setStrokeWidth(10);
@@ -70,6 +82,7 @@ public class Edge extends Line {
                 hasPartnership = true;
                 if(new longestPath(edges, this, maxDistance).bfs()){
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
+                    Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 }
             }else{
                 errorSound.stop(); // it may is playing already

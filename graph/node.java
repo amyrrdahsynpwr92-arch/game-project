@@ -7,8 +7,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
 import javafx.scene.shape.Circle;
+import set_undo_and_redo.drawUndoButton;
+import set_undo_and_redo.saveStages;
+import type.PlayerRole;
 import javafx.scene.paint.Color;
-import javafx.scene.image.Image;
+import javafx.application.Platform;
+import game_board.drawBoard;
+import set_undo_and_redo.*;
 
 public class Node extends Pane{
     private Player currentPlayer;
@@ -30,7 +35,10 @@ public class Node extends Pane{
     private MediaPlayer errorSound = new MediaPlayer(soundAddress);
     private ArrayList<Sector> sectors = new ArrayList<>();
     private ArrayList<Color> linkedPartnerships = new ArrayList<>();
-    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors){
+    private drawBoard board;
+    private drawUndoButton undoButton; 
+    private saveStages stages;
+    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, drawBoard board, saveStages stages, drawUndoButton undoButton){
         this.handle_preGame = handle_preGame;
         this.handle_TurningGame = handle_TurningGame;
         this.row = row;
@@ -40,7 +48,10 @@ public class Node extends Pane{
         nodeShape.setStyle("-fx-fill: black; -fx-stroke: white");
         nodeShape.setCenterX(0);
         nodeShape.setCenterY(0);
+        this.board = board;
         this.getChildren().add(nodeShape);
+        this.stages = stages;
+        this.undoButton = undoButton;
         nodeShape.setOnMouseClicked(e -> drawMVP(row, col));
     }
     public int getRow() {
@@ -56,6 +67,7 @@ public class Node extends Pane{
         Cloud cloud = null;
         Data data = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
+        boolean valid = false;
         if(handle_preGame.isPreGame()){
             handle_preGame.NotifyMVP();
             currentPlayer = handle_preGame.getCurrentPlayer();
@@ -65,8 +77,12 @@ public class Node extends Pane{
                 this.getChildren().clear();
                 this.getChildren().add(nodeMVP);
                 nodeMVP.setOnMouseClicked(e -> drawUnicorn());
+                currentPlayer.setScore(currentPlayer.getScore() + 1);
+                Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 this.hasMVP = true;
+                valid = true;
                 handle_preGame.setTurn(2);
+                stages.addStage(board.getMap());
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -98,7 +114,10 @@ public class Node extends Pane{
                 cards.remove(cloud);
                 cards.remove(data);
                 currentPlayer.setScore(currentPlayer.getScore() + 1);
+                Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 nodeMVP.GetShape().setFill(currentPlayer.getColor());
+                valid = true;
+                stages.addStage(board.getMap());
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -106,9 +125,9 @@ public class Node extends Pane{
         }
         for(Sector sector: sectors){
             if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                cards.add(sector.getResource());
+                if(!(sector.getResource() instanceof Null))cards.add(sector.getResource());
         }
-        
+        if(valid)board.getLeftSide().drawMyCards(currentPlayer);
     }
     public void drawUnicorn(){
         nodeUnicorn = new Unicorn();
@@ -138,24 +157,44 @@ public class Node extends Pane{
                         data3 = (Data)card;
                 }
             }
-            if(cloud1 != null && cloud2 != null && data1 != null && data2 != null && data3 != null)
-                nodeUnicorn.GetShape().setFill(currentPlayer.getColor());
-            else{
-                // errorSound.stop(); // it may is playing already
-                // errorSound.play();
+            if(currentPlayer.getRole() == PlayerRole.The_Teck_GURU){
+                if(cloud1 != null && data1 != null && data2 != null && data3 != null){
+                    nodeUnicorn = new Unicorn();
+                    this.getChildren().clear();
+                    this.getChildren().add(nodeUnicorn);
+                    nodeUnicorn.GetShape().setFill(currentPlayer.getColor());
+                    cards.remove(cloud1);
+                    cards.remove(data1);
+                    cards.remove(data2);
+                    cards.remove(data3);
+                    currentPlayer.setMyCards(cards);
+                    currentPlayer.setScore(currentPlayer.getScore() + 2);
+                    Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
+                    stages.addStage(board.getMap());
+                }else{
+                    errorSound.stop(); // it may is playing already
+                    errorSound.play();
+                }
+            }else{
+                if(cloud1 != null && cloud2 != null && data1 != null && data2 != null && data3 != null){
+                    nodeUnicorn = new Unicorn();
+                    this.getChildren().clear();
+                    this.getChildren().add(nodeUnicorn);
+                    nodeUnicorn.GetShape().setFill(currentPlayer.getColor());
+                    cards.remove(cloud1);
+                    cards.remove(cloud2);
+                    cards.remove(data1);
+                    cards.remove(data2);
+                    cards.remove(data3);
+                    currentPlayer.setMyCards(cards);
+                    currentPlayer.setScore(currentPlayer.getScore() + 2);
+                    Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
+                    stages.addStage(board.getMap());
+                }else{
+                    errorSound.stop(); // it may is playing already
+                    errorSound.play();
+                }
             }
-        }
-        if(cloud1 != null && cloud2 != null && data1 != null && data2 != null && data3 != null){
-            nodeUnicorn = new Unicorn();
-            this.getChildren().clear();
-            this.getChildren().add(nodeUnicorn);
-            if(cloud1 != null)cards.remove(cloud1);
-            if(cloud2 != null)cards.remove(cloud2);
-            if(data1 != null)cards.remove(data1);
-            if(data2 != null)cards.remove(data2);
-            if(data3 != null)cards.remove(data3);
-            if(cards != null)currentPlayer.setMyCards(cards);
-            currentPlayer.setScore(currentPlayer.getScore() + 2);
         }
     }
     public boolean validate(int row, int col){
