@@ -3,7 +3,7 @@ package company;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class Unicorn extends ComanyStructure {
+public class Unicorn extends CompanyStructure {
     private Rectangle shape = new Rectangle();
     public Rectangle GetShape() {
         return shape;

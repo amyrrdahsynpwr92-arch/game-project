@@ -18,10 +18,10 @@ import java.util.HashMap;
 import util.Player;
 import card.*;
 
-public class leftSide extends VBox {
+public class LeftSide extends VBox {
     private ArrayList<Player> players;
     private VBox myCards;
-    public leftSide(ArrayList<Player> players){
+    public LeftSide(ArrayList<Player> players){
         this.players = players;
         this.setBackground(new Background(new BackgroundFill(Color.color(0.0, 0.0, 0.0, 0.92),CornerRadii.EMPTY,Insets.EMPTY)));
         drawPlayersScore();

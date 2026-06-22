@@ -8,17 +8,20 @@ import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import util.Player;
 
-public class drawBoard {
-    private leftSide left;
+public class DrawBoard {
+    private LeftSide left;
+    private TopSide top;
     private Map map;
     private FadeTransition fadeTransition = new FadeTransition();
     private BorderPane currentPane; 
-    public drawBoard(BorderPane currentPane, ArrayList<Player> players){
+    public DrawBoard(BorderPane currentPane, ArrayList<Player> players){
         this.currentPane = currentPane;
-        left = new leftSide(players);
+        left = new LeftSide(players);
         currentPane.setLeft(left);
         map = new Map(players.size(), players, this);
         currentPane.setCenter(map);
+        top = new TopSide(currentPane);
+        currentPane.setTop(top);
         fadeTransition.setFromValue(0.0);
         fadeTransition.setToValue(1.0);
         fadeTransition.setDuration(Duration.millis(6000));
@@ -26,8 +29,11 @@ public class drawBoard {
         fadeTransition.setCycleCount(1);
         fadeTransition.play();
     }
-    public leftSide getLeftSide(){
+    public LeftSide getLeftSide(){
         return left;
+    }
+    public TopSide getTopSide(){
+        return top;
     }
     public Map getMap(){
         return map;

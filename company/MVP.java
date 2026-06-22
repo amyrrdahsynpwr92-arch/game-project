@@ -2,7 +2,7 @@ package company;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class MVP extends ComanyStructure {
+public class MVP extends CompanyStructure {
     private Circle shape = new Circle();
     public Circle GetShape() {
         return shape;

@@ -1,14 +1,13 @@
 package util;
 import java.util.List;
 import javafx.scene.paint.Color;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Handle_PreGame {
     private boolean isPreGame = true;
     private Color currentColor = null;
-    private  int currentPlayer = 0;
+    private int currentPlayer = 1;
     private enum Mode{Increment, Decrement, Constant};
     private Mode mode = Mode.Increment;
     private enum Turn{Node, Partnership};
@@ -24,18 +23,18 @@ public class Handle_PreGame {
         this.handle_TurningGame = handle_TurningGame;
     }
     public void NotifyMVP() {
-        currentColor = colors.get(currentPlayer);
+        currentColor = colors.get(currentPlayer-1);
     }
     public void NotifyPartnership() {
-        currentColor = colors.get(currentPlayer);
-        if(currentPlayer == numberOfPlayers-1 && mode != Mode.Decrement)mode = Mode.Constant;
+        currentColor = colors.get(currentPlayer-1);
+        if(currentPlayer == numberOfPlayers && mode != Mode.Decrement)mode = Mode.Constant;
         if(mode == Mode.Increment){
             currentPlayer++;
         }else if(mode == Mode.Constant){
             mode = Mode.Decrement; // for next round
         }else{
             currentPlayer--;
-            if(currentPlayer == -1){
+            if(currentPlayer == 0){
                 isPreGame = false;
                 handle_TurningGame.setTurning_Game(true);
             }
@@ -51,7 +50,8 @@ public class Handle_PreGame {
         return currentColor;
     }
     public Player getCurrentPlayer(){
-        return players.get(currentPlayer);
+        if(currentPlayer == 0)return players.get(0);
+        else return players.get(currentPlayer-1);
     }
     public void setTurn(int n){
         if(n == 1)turn = Turn.Node;

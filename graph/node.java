@@ -12,7 +12,7 @@ import set_undo_and_redo.saveStages;
 import type.PlayerRole;
 import javafx.scene.paint.Color;
 import javafx.application.Platform;
-import game_board.drawBoard;
+import game_board.DrawBoard;
 import set_undo_and_redo.*;
 
 public class Node extends Pane{
@@ -35,10 +35,10 @@ public class Node extends Pane{
     private MediaPlayer errorSound = new MediaPlayer(soundAddress);
     private ArrayList<Sector> sectors = new ArrayList<>();
     private ArrayList<Color> linkedPartnerships = new ArrayList<>();
-    private drawBoard board;
+    private DrawBoard board;
     private drawUndoButton undoButton; 
     private saveStages stages;
-    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, drawBoard board, saveStages stages, drawUndoButton undoButton){
+    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, saveStages stages, drawUndoButton undoButton){
         this.handle_preGame = handle_preGame;
         this.handle_TurningGame = handle_TurningGame;
         this.row = row;
@@ -78,11 +78,15 @@ public class Node extends Pane{
                 this.getChildren().add(nodeMVP);
                 nodeMVP.setOnMouseClicked(e -> drawUnicorn());
                 currentPlayer.setScore(currentPlayer.getScore() + 1);
-                Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
+                Platform.runLater(() -> { // UI update 
+                    board.getLeftSide().drawPlayersScore();
+                    board.getTopSide().drawPlayerBox(currentPlayer.getPlayerNumber());
+                    board.getTopSide().drawStatusPanel("player " + Integer.toString(currentPlayer.getPlayerNumber()) + "! please put a Partnership");
+                }); 
                 this.hasMVP = true;
                 valid = true;
                 handle_preGame.setTurn(2);
-                stages.addStage(board.getMap());
+                //stages.addStage(board.getMap());
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();

@@ -2,7 +2,7 @@ package company;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-public abstract class ComanyStructure extends Pane{
+public abstract class CompanyStructure extends Pane{
     protected Color color; 
     public void setColor(Color color) {
         this.color = color;

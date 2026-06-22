@@ -1,7 +1,7 @@
 package graph;
 import java.util.ArrayList;
 import card.*;
-import game_board.drawBoard;
+import game_board.DrawBoard;
 import util.*;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
@@ -25,10 +25,10 @@ public class Edge extends Line {
     private static final Media soundAddress = new Media(Edge.class.getResource("/voices/error.mp3").toExternalForm());
     private MediaPlayer errorSound = new MediaPlayer(soundAddress);
     private Handle_TurningGame handle_TurningGame;
-    private drawBoard board;
+    private DrawBoard board;
     private drawUndoButton undoButton; 
     private saveStages stages;
-    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, drawBoard board, saveStages stages, drawUndoButton undoButton){
+    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, saveStages stages, drawUndoButton undoButton){
         this.handle_preGame = handle_PreGame;
         this.handle_TurningGame = handle_TurningGame;
         this.start = start;
@@ -54,6 +54,12 @@ public class Edge extends Line {
                 hasPartnership = true;
                 handle_preGame.setTurn(1);
                 stages.addStage(board.getMap());
+                Platform.runLater(() -> {
+                    if(handle_preGame.isPreGame())
+                        board.getTopSide().drawStatusPanel("player " + Integer.toString(handle_preGame.getCurrentPlayer().getPlayerNumber()) + "! please put a MVP");
+                    else
+                        board.getTopSide().drawStatusPanel("player 1! this is your turn");
+                });
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -80,7 +86,7 @@ public class Edge extends Line {
                 cards.remove(patent);
                 currentPlayer.setMyCards(cards);
                 hasPartnership = true;
-                if(new longestPath(edges, this, maxDistance).bfs()){
+                if(new LongestPath(edges, this, maxDistance).bfs()){
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 }

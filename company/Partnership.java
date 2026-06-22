@@ -3,7 +3,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.paint.Color;
 import graph.*;
 
-public class Partnership extends ComanyStructure {
+public class Partnership extends CompanyStructure {
     private Line shape = new Line();
     public Partnership(Node start, Node end){
         shape.setStartX(start.getLayoutX());

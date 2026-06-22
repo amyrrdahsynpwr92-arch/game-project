@@ -1,7 +1,6 @@
 package util;
 import java.util.ArrayList;
-
-import game_board.drawMap;
+import game_board.Map;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -20,7 +19,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import game_board.drawBoard;
+import game_board.DrawBoard;
 import card.*;
 
 public class gameInitiallization{
@@ -268,8 +267,6 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image1);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_Hacker_CEO);
-                    players.get(playerIndex).getMyCards().add(new Capital());
-                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -280,7 +277,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new drawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -292,8 +289,6 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image2);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_Teck_GURU);
-                    players.get(playerIndex).getMyCards().add(new Capital());
-                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -304,7 +299,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new drawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -328,7 +323,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new drawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -340,8 +335,6 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image4);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.Null);
-                    players.get(playerIndex).getMyCards().add(new Capital());
-                    players.get(playerIndex).getMyCards().add(new Capital());
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -352,7 +345,7 @@ public class gameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new drawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players);
                     });
                     fadeTransition.play();
                 }

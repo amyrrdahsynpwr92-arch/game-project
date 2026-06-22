@@ -35,10 +35,10 @@ public class Map extends Pane{
     private Handle_PreGame handle_preGame;
     private Handle_TurningGame handle_TurningGame;
     private ArrayList<Sector> sectors = new ArrayList<>();
-    private drawBoard board;
+    private DrawBoard board;
     private drawUndoButton undoButton; 
     private saveStages stages;
-    public Map(int numberOfPlayers, ArrayList<Player> players, drawBoard board){
+    public Map(int numberOfPlayers, ArrayList<Player> players, DrawBoard board){
         this.numberOfPlayers = numberOfPlayers;
         this.handle_TurningGame = new Handle_TurningGame(players);
         handle_preGame = new Handle_PreGame(players, handle_TurningGame);

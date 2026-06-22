@@ -3,11 +3,11 @@ import java.util.Queue;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class longestPath {
+public class LongestPath {
     private ArrayList<Edge> edges;
     private Edge edge;
     private Integer maxDistance;
-    public longestPath(ArrayList<Edge> edges, Edge edge, Integer maxDistance){
+    public LongestPath(ArrayList<Edge> edges, Edge edge, Integer maxDistance){
         this.edges = edges;
         this.edge = edge;
         this.maxDistance = maxDistance;
