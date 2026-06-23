@@ -7,8 +7,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import set_undo_and_redo.drawUndoButton;
-import set_undo_and_redo.saveStages;
+import set_undo_and_redo.DrawUndoButton;
 import javafx.application.Platform;
 
 public class Edge extends Line {
@@ -26,9 +25,8 @@ public class Edge extends Line {
     private MediaPlayer errorSound = new MediaPlayer(soundAddress);
     private Handle_TurningGame handle_TurningGame;
     private DrawBoard board;
-    private drawUndoButton undoButton; 
-    private saveStages stages;
-    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, saveStages stages, drawUndoButton undoButton){
+    private DrawUndoButton undoButton;
+    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, DrawUndoButton undoButton){
         this.handle_preGame = handle_PreGame;
         this.handle_TurningGame = handle_TurningGame;
         this.start = start;
@@ -37,7 +35,6 @@ public class Edge extends Line {
         this.setStrokeWidth(6);
         this.setStroke(Color.WHITE);
         this.board = board;
-        this.stages = stages;
         this.undoButton = undoButton;
         this.setOnMouseClicked(e -> drawPartnership());
     }
@@ -53,13 +50,13 @@ public class Edge extends Line {
                 this.setStrokeWidth(10);
                 hasPartnership = true;
                 handle_preGame.setTurn(1);
-                stages.addStage(board.getMap());
                 Platform.runLater(() -> {
                     if(handle_preGame.isPreGame())
                         board.getTopSide().drawStatusPanel("player " + Integer.toString(handle_preGame.getCurrentPlayer().getPlayerNumber()) + "! please put a MVP");
                     else
                         board.getTopSide().drawStatusPanel("player 1! this is your turn");
                 });
+                undoButton.addStage(this, currentPlayer);
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -78,7 +75,6 @@ public class Edge extends Line {
                     break;
             }
             this.setStroke(currentPlayer.getColor());
-            stages.addStage(board.getMap());
             if((capital != null && patent != null)){
                 this.setStroke(Color.RED);
                 this.setStrokeWidth(10);
@@ -112,6 +108,16 @@ public class Edge extends Line {
                 return true;
         }
         return false;
+    }
+    public void deletePartnership(Player player){
+        this.setStrokeWidth(6);
+        this.setStroke(Color.WHITE);
+        this.hasPartnership = false;
+        handle_preGame.setTurn(2);
+        handle_preGame.NotifyBack();
+        Platform.runLater(() -> {
+            board.getTopSide().drawStatusPanel("player " + Integer.toString(player.getPlayerNumber()) + "! please put a Partnership");
+        });
     }
     public boolean getHasPartnership() {
         return hasPartnership;

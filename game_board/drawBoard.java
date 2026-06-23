@@ -1,10 +1,7 @@
 package game_board;
 import javafx.animation.FadeTransition;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.Pane;
 import java.util.ArrayList;
-import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import util.Player;
 
@@ -18,10 +15,10 @@ public class DrawBoard {
         this.currentPane = currentPane;
         left = new LeftSide(players);
         currentPane.setLeft(left);
-        map = new Map(players.size(), players, this);
-        currentPane.setCenter(map);
         top = new TopSide(currentPane);
         currentPane.setTop(top);
+        map = new Map(players.size(), players, this, 5);
+        currentPane.setCenter(map);
         fadeTransition.setFromValue(0.0);
         fadeTransition.setToValue(1.0);
         fadeTransition.setDuration(Duration.millis(6000));

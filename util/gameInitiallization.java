@@ -22,7 +22,7 @@ import javafx.scene.media.MediaPlayer;
 import game_board.DrawBoard;
 import card.*;
 
-public class gameInitiallization{
+public class GameInitiallization{
     private BorderPane currentPane;
     private ArrayList<Player> players = new ArrayList<>();
     private int numberOfPlayers;
@@ -34,11 +34,13 @@ public class gameInitiallization{
     private ImageView image4 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/null.jpg")));
     private MediaPlayer clickSound = new MediaPlayer(new Media(getClass().getResource("/voices/click.mp3").toExternalForm()));
     private int playerIndex = 0;
-    
+    private Capital capital1 = new Capital();
+    private Capital capital2 = new Capital();
+
     public int getNumberOfPlayers() {
         return numberOfPlayers;
     }
-    public gameInitiallization(BorderPane currentPane){
+    public GameInitiallization(BorderPane currentPane){
         this.currentPane = currentPane;
         background.fitWidthProperty().bind(currentPane.widthProperty());
         background.fitHeightProperty().bind(currentPane.heightProperty());
@@ -311,8 +313,8 @@ public class gameInitiallization{
                 paneForImages.getChildren().remove(image3);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_VC_Funded);
-                    players.get(playerIndex).getMyCards().add(new Capital());
-                    players.get(playerIndex).getMyCards().add(new Capital());
+                    players.get(playerIndex).getMyCards().add(capital1);
+                    players.get(playerIndex).getMyCards().add(capital2);
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");

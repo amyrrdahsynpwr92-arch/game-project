@@ -27,7 +27,7 @@ public class Sector extends Pane{
     private int col;
     private ResourceCard resource;
 
-    public Sector(ResourceCard resource, double x, double y, int row, int col){
+    public Sector(ResourceCard resource, int row, int col){
         this.resource = resource;
         this.ResourceType = resource.getType();
         this.number = new Random().nextInt(11) + 2;
@@ -132,28 +132,6 @@ public class Sector extends Pane{
                 break;
             case Regulatory_Zone:
                 this.name = "Regulatary";
-                break;
-        }
-    }
-    public void setResource(ProductionResources resourceType){
-        switch(resourceType){
-            case Capital:
-                //resource = new Capital();
-                break;
-            case Cloud:
-                //resource = new Cloud();
-                break;
-            case Data:
-                //resource = new Data();
-                break;
-            case Patent:
-                //resource = new Patent();
-                break;
-            case Talent:
-                //resource = new Talent();
-                break;
-            case Null:
-                //resource = new Null();
                 break;
         }
     }

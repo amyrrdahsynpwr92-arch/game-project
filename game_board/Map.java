@@ -15,8 +15,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import set_undo_and_redo.drawUndoButton;
-import set_undo_and_redo.saveStages;
+import set_undo_and_redo.DrawUndoButton;
 import javafx.scene.text.Font;
 import util.Handle_PreGame;
 import util.Handle_TurningGame;
@@ -35,33 +34,59 @@ public class Map extends Pane{
     private Handle_PreGame handle_preGame;
     private Handle_TurningGame handle_TurningGame;
     private ArrayList<Sector> sectors = new ArrayList<>();
+    private ArrayList<Edge> edges = new ArrayList<>();
     private DrawBoard board;
-    private drawUndoButton undoButton; 
-    private saveStages stages;
-    public Map(int numberOfPlayers, ArrayList<Player> players, DrawBoard board){
+    private DrawUndoButton undoButton;
+    private int n;
+    public Map(int numberOfPlayers, ArrayList<Player> players, DrawBoard board, int n){
+        undoButton = board.getTopSide().getUndoButton();
+        this.n = n;
         this.numberOfPlayers = numberOfPlayers;
         this.handle_TurningGame = new Handle_TurningGame(players);
         handle_preGame = new Handle_PreGame(players, handle_TurningGame);
-        nodes = new Node[6][6];
+        nodes = new Node[n+1][n+1];
         this.board = board;
-        stages = new saveStages();
-        undoButton = new drawUndoButton(this, stages, board.getCurrentPane());
+        undoButton = board.getTopSide().getUndoButton();
         drawGraph();
     }
     public void drawGraph(){
-        hGap.bind(widthProperty().divide(6.7));
-        vGap.bind(heightProperty().divide(6.7));
+        switch(n){
+            case 5: 
+                hGap.bind(widthProperty().divide(6.7));
+                vGap.bind(heightProperty().divide(6.7));
+                break;
+            case 6: 
+                hGap.bind(widthProperty().divide(7.8));
+                vGap.bind(heightProperty().divide(7.8));
+                break;
+            case 7: 
+                hGap.bind(widthProperty().divide(8.9));
+                vGap.bind(heightProperty().divide(8.9));
+                break;
+            case 8: 
+                hGap.bind(widthProperty().divide(10.0));
+                vGap.bind(heightProperty().divide(10.0));
+                break;
+            case 9: 
+                hGap.bind(widthProperty().divide(11.1));
+                vGap.bind(heightProperty().divide(11.1));
+                break;
+            case 10: 
+                hGap.bind(widthProperty().divide(12.2));
+                vGap.bind(heightProperty().divide(12.2));
+                break;     
+        }
         background.fitWidthProperty().bind(widthProperty());
         background.fitHeightProperty().bind(heightProperty());
         background.setSmooth(true);
         this.setBackground(new Background(new BackgroundFill(Color.TURQUOISE,CornerRadii.EMPTY,Insets.EMPTY)));
         this.getChildren().add(background);
         List<ResourceCard> cards = Arrays.asList(new Capital(), new Cloud(), new Data(), new Null(), new Patent(), new Talent());
-        for(int i=0; i<5; i++){
-            for(int j=0; j<5; j++){
-                Sector sector = new Sector(cards.get(new Random().nextInt(6)), j * 50 + 50, i * 50 + 50, j, i);
-                sector.layoutXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                sector.layoutYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+        for(int i=0; i<n; i++){
+            for(int j=0; j<n; j++){
+                Sector sector = new Sector(cards.get(new Random().nextInt(6)),j, i);
+                sector.layoutXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                sector.layoutYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
                 sector.getSectorShape().widthProperty().bind(hGap);
                 sector.getSectorShape().heightProperty().bind(vGap);
                 sector.prefWidthProperty().bind(hGap);
@@ -70,45 +95,44 @@ public class Map extends Pane{
                 this.getChildren().add(sector);
             }
         }
-        for(int i=0; i<6; i++){
-            for(int j=0; j<6; j++){
-                nodes[i][j] = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, stages, undoButton);
-                nodes[i][j].layoutXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                nodes[i][j].layoutYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+        for(int i=0; i<n+1; i++){
+            for(int j=0; j<n+1; j++){
+                nodes[i][j] = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, undoButton);
+                nodes[i][j].layoutXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                nodes[i][j].layoutYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
                 nodes[i][j].getNodeShape().radiusProperty().bind(getWidth() > getHeight() ? widthProperty().divide(70) : heightProperty().divide(70));
             }
         }
-        ArrayList<Edge> edges = new ArrayList<>();
-        for(int i=0; i<6; i++){
-            for(int j=0; j<5; j++){
-                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*5+j, board, stages, undoButton);
+        for(int i=0; i<n+1; i++){
+            for(int j=0; j<n; j++){
+                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*n+j, board, undoButton);
                 this.getChildren().add(e);
                 edges.add(e);
-                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
-                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j+1)));
-                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
+                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
+                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j+1)));
+                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
             }
         }
-        for(int j=0; j<6; j++){
-            for(int i=0; i<5; i++){
-                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*5+i, board, stages, undoButton);
+        for(int j=0; j<n+1; j++){
+            for(int i=0; i<n; i++){
+                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*n+i, board, undoButton);
                 this.getChildren().add(e);
                 edges.add(e);
-                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i)));
-                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(5)).divide(2).add(hGap.multiply(j)));
-                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(5)).divide(2).add(vGap.multiply(i+1)));
+                e.startXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                e.startYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
+                e.endXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                e.endYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i+1)));
             }   
         }    
         for(Edge e: edges){
             e.setEdges(edges);
         }
-        for(int i=0; i<6; i++){
-            for(int j=0; j<6; j++){
-                Node n = nodes[i][j];
-                n.setNodes(nodes);
-                this.getChildren().add(n);
+        for(int i=0; i<n+1; i++){
+            for(int j=0; j<n+1; j++){
+                Node node = nodes[i][j];
+                node.setNodes(nodes);
+                this.getChildren().add(node);
             }
         }
         //new drawSourcesInformation(this);

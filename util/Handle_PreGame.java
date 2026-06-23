@@ -40,6 +40,19 @@ public class Handle_PreGame {
             }
         }
     }
+    public void NotifyBack() {
+        if(mode == Mode.Increment){
+            currentPlayer--;
+        }else if(mode == Mode.Decrement){
+            if(currentPlayer == players.size()){
+                mode = Mode.Constant;
+            }
+            else{
+                currentPlayer++;
+            }
+        }
+        currentColor = colors.get(currentPlayer-1);
+    }
     public Color isCurrentColor() {
         return currentColor;
     }

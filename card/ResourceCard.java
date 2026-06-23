@@ -20,4 +20,7 @@ public class ResourceCard {
     public ImageView getSymbol(){
         return symbol;
     }
+    public int getPrice(){
+        return price;
+    }
 }

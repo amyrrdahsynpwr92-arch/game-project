@@ -7,8 +7,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
 import javafx.scene.shape.Circle;
-import set_undo_and_redo.drawUndoButton;
-import set_undo_and_redo.saveStages;
+import set_undo_and_redo.DrawUndoButton;
 import type.PlayerRole;
 import javafx.scene.paint.Color;
 import javafx.application.Platform;
@@ -36,9 +35,8 @@ public class Node extends Pane{
     private ArrayList<Sector> sectors = new ArrayList<>();
     private ArrayList<Color> linkedPartnerships = new ArrayList<>();
     private DrawBoard board;
-    private drawUndoButton undoButton; 
-    private saveStages stages;
-    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, saveStages stages, drawUndoButton undoButton){
+    private DrawUndoButton undoButton; 
+    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, DrawUndoButton undoButton){
         this.handle_preGame = handle_preGame;
         this.handle_TurningGame = handle_TurningGame;
         this.row = row;
@@ -50,7 +48,6 @@ public class Node extends Pane{
         nodeShape.setCenterY(0);
         this.board = board;
         this.getChildren().add(nodeShape);
-        this.stages = stages;
         this.undoButton = undoButton;
         nodeShape.setOnMouseClicked(e -> drawMVP(row, col));
     }
@@ -86,7 +83,7 @@ public class Node extends Pane{
                 this.hasMVP = true;
                 valid = true;
                 handle_preGame.setTurn(2);
-                //stages.addStage(board.getMap());
+                undoButton.addStage(this, currentPlayer);
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -121,7 +118,6 @@ public class Node extends Pane{
                 Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 nodeMVP.GetShape().setFill(currentPlayer.getColor());
                 valid = true;
-                stages.addStage(board.getMap());
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -131,7 +127,7 @@ public class Node extends Pane{
             if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                 if(!(sector.getResource() instanceof Null))cards.add(sector.getResource());
         }
-        if(valid)board.getLeftSide().drawMyCards(currentPlayer);
+        if(valid)Platform.runLater(() -> board.getLeftSide().drawMyCards(currentPlayer));
     }
     public void drawUnicorn(){
         nodeUnicorn = new Unicorn();
@@ -174,7 +170,6 @@ public class Node extends Pane{
                     currentPlayer.setMyCards(cards);
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
-                    stages.addStage(board.getMap());
                 }else{
                     errorSound.stop(); // it may is playing already
                     errorSound.play();
@@ -193,7 +188,6 @@ public class Node extends Pane{
                     currentPlayer.setMyCards(cards);
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
-                    stages.addStage(board.getMap());
                 }else{
                     errorSound.stop(); // it may is playing already
                     errorSound.play();
@@ -207,6 +201,23 @@ public class Node extends Pane{
         if(handle_preGame.getTurn() == 2)
             return false;
         return true;
+    }
+    public void deleteMVP(Player player){
+        this.getChildren().clear();
+        this.getChildren().add(nodeShape);
+        player.setScore(player.getScore() - 1);
+        ArrayList<ResourceCard> cards = player.getMyCards();
+        for(Sector sector: sectors){
+            if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
+                if(!(sector.getResource() instanceof Null))cards.remove(sector.getResource());
+        }
+        this.hasMVP = false;
+        handle_preGame.setTurn(1);
+        Platform.runLater(() -> {
+            board.getLeftSide().drawPlayersScore();
+            board.getLeftSide().drawMyCards(player);
+            board.getTopSide().drawStatusPanel("player " + Integer.toString(player.getPlayerNumber()) + "! please put a MVP");
+        });
     }
     public Circle getNodeShape() {
         return nodeShape;

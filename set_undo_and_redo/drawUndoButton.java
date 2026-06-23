@@ -1,29 +1,42 @@
 package set_undo_and_redo;
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.BorderPane;
+import java.util.ArrayList;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import graph.*;
+import util.*;
 
-public class drawUndoButton {
-    private Pane pane;
-    Button bt = new Button();
-   // private ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/images/details/undo.png")));
-    saveStages stages;
-     BorderPane currentPane;
-    public drawUndoButton(Pane pane, saveStages stages, BorderPane currentPane){
-        this.pane = pane;
-        this.stages = stages;
-        this.currentPane = currentPane;
-        //draw();
+public class DrawUndoButton {
+    Player player;
+    int numberOfMoves = 0;
+    ArrayList<Object> objects = new ArrayList<>();
+    private static final Media soundAddress = new Media(Node.class.getResource("/voices/error.mp3").toExternalForm());
+    private MediaPlayer errorSound = new MediaPlayer(soundAddress);
+    public void loadPrevoiusStage(){
+        if(numberOfMoves <= 0 || player == null || objects.size() == 0){
+            errorSound.stop();
+            errorSound.play();
+            return;
+        }
+        if(objects.get(objects.size() - 1) instanceof Node){
+            ((Node)objects.get(objects.size() - 1)).deleteMVP(player);
+            objects.remove(objects.size() - 1);
+            numberOfMoves--;
+        }else if(objects.get(objects.size() - 1) instanceof Edge){
+            ((Edge)objects.get(objects.size() - 1)).deletePartnership(player);
+            objects.remove(objects.size() - 1);
+            numberOfMoves--;
+        }
     }
-    public void draw(){
-        bt.setText("Undo");
-       // bt.setGraphic(image);
-        //bt.layoutXProperty().bind(pane.widthProperty().divide(2/5));
-        bt.setLayoutX(200);
-        bt.setLayoutY(50);
-        pane.getChildren().add(bt);
-        bt.setOnMouseClicked(e -> currentPane.setCenter(stages.getCurrentStage()));
+    public void addStage(Object O, Player player){
+        if(this.player != player || this.player == null){
+            this.player = player;
+            numberOfMoves = 0;
+        }
+        objects.add(O);
+        numberOfMoves++;
+    }
+    
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 }
