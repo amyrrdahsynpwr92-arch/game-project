@@ -12,6 +12,7 @@ import javafx.application.Platform;
 
 public class Edge extends Line {
     private Line edgeShape;
+    private Line outLine;
     private boolean hasPartnership;
     private Node start;
     private Node end;
@@ -39,6 +40,7 @@ public class Edge extends Line {
         this.setOnMouseClicked(e -> drawPartnership());
     }
     public void drawPartnership(){
+        if(board.getGameStoppage())return;
         Capital capital = null;
         Patent patent = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
@@ -54,7 +56,7 @@ public class Edge extends Line {
                     if(handle_preGame.isPreGame())
                         board.getTopSide().drawStatusPanel("player " + Integer.toString(handle_preGame.getCurrentPlayer().getPlayerNumber()) + "! please put a MVP");
                     else
-                        board.getTopSide().drawStatusPanel("player 1! this is your turn");
+                        board.getTopSide().drawStatusPanel("player 1! this is your turn, roll dices");
                 });
                 undoButton.addStage(this, currentPlayer);
             }else{
@@ -62,26 +64,27 @@ public class Edge extends Line {
                 errorSound.play();
             }
         }
-        else if(handle_TurningGame.isTurning_Game()){
-            handle_TurningGame.Notify();
+        else if(handle_TurningGame.isTurning_Game() && board.getRightSide().getDicesRolled()){
             currentPlayer = handle_TurningGame.getCurrentPlayer();
             cards = currentPlayer.getMyCards();
             for(ResourceCard card: cards){
-                if(card instanceof Capital)
+                if(card instanceof Capital )
                     capital = (Capital)card;
                 else if(card instanceof Patent)
                     patent = (Patent)card;
-                if(capital != null && patent != null)
+                if(capital != null && patent != null){
                     break;
+                }
             }
-            this.setStroke(currentPlayer.getColor());
-            if((capital != null && patent != null)){
-                this.setStroke(Color.RED);
+            if(capital != null && patent != null){
+                this.setStroke(currentPlayer.getColor());
                 this.setStrokeWidth(10);
-                if(capital != null)cards.remove(capital);
+                cards.remove(capital);
                 cards.remove(patent);
+                Platform.runLater(() -> board.getLeftSide().drawMyCards(currentPlayer)); 
                 currentPlayer.setMyCards(cards);
                 hasPartnership = true;
+                undoButton.addStage(this, currentPlayer);
                 if(new LongestPath(edges, this, maxDistance).bfs()){
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
@@ -94,18 +97,32 @@ public class Edge extends Line {
     }
     private boolean validate(){
         Color playerColor = currentPlayer.getColor();
-        if((start.getHasMVP() && playerColor == (start.getNodeMVP().GetShape()).getFill()) || (end.getHasMVP() && playerColor == (end.getNodeMVP().GetShape()).getFill()) && handle_preGame.getTurn() == 2){
-            start.addPartnership(playerColor);
-            end.addPartnership(playerColor);
-            return true;   
+        if((start.HasMVP() && playerColor == (start.getNodeMVP().GetShape()).getFill()) || (end.HasMVP() && playerColor == (end.getNodeMVP().GetShape()).getFill())){
+            if(handle_TurningGame.isTurning_Game()){
+                start.addPartnership(playerColor);
+                end.addPartnership(playerColor);
+                return true;   
+            }else if(handle_preGame.getTurn() == 2){
+                start.addPartnership(playerColor);
+                end.addPartnership(playerColor);
+                return true;
+            }
         }
         for(Color color: start.getLinkedPartnerships()){
-            if(color == playerColor && handle_preGame.getTurn() == 2)
-                return true;
+            if(color == playerColor){
+                if(handle_TurningGame.isTurning_Game())
+                    return true;
+                else if(handle_preGame.getTurn() == 2)
+                    return true;
+            }
         }
         for(Color color: end.getLinkedPartnerships()){
-            if(color == playerColor && handle_preGame.getTurn() == 2)
-                return true;
+            if(color == playerColor){
+                if(handle_TurningGame.isTurning_Game())
+                    return true;
+                else if(handle_preGame.getTurn() == 2)
+                    return true;
+            }
         }
         return false;
     }
@@ -115,8 +132,14 @@ public class Edge extends Line {
         this.hasPartnership = false;
         handle_preGame.setTurn(2);
         handle_preGame.NotifyBack();
+        if(handle_TurningGame.isTurning_Game()){
+            ArrayList<ResourceCard> cards = currentPlayer.getMyCards();
+            cards.add(new Capital());
+            cards.add(new Patent());
+        }
         Platform.runLater(() -> {
-            board.getTopSide().drawStatusPanel("player " + Integer.toString(player.getPlayerNumber()) + "! please put a Partnership");
+            if(handle_preGame.isPreGame())board.getTopSide().drawStatusPanel("player " + Integer.toString(player.getPlayerNumber()) + "! please put a Partnership");
+            if(handle_TurningGame.isTurning_Game())board.getLeftSide().drawMyCards(currentPlayer);
         });
     }
     public boolean getHasPartnership() {

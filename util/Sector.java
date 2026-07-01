@@ -12,6 +12,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.shape.Rectangle;
+import java.util.ArrayList;
 import card.*;
 
 public class Sector extends Pane{
@@ -26,6 +27,8 @@ public class Sector extends Pane{
     private int row;
     private int col;
     private ResourceCard resource;
+    private ArrayList<Player> myPlayers = new ArrayList<>();
+    private boolean hasAuditor;
 
     public Sector(ResourceCard resource, int row, int col){
         this.resource = resource;
@@ -158,4 +161,21 @@ public class Sector extends Pane{
     public Rectangle getSectorShape() {
         return sectorShape;
     }
+    public void addMyPlayers(Player player){
+        myPlayers.add(player);
+    }
+
+    public ArrayList<Player> getMyPlayers() {
+        return myPlayers;
+    }
+    public int getNumber() {
+        return number;
+    }
+    public void setHasAuditor(boolean hasAuditor){
+        this.hasAuditor = hasAuditor;
+    }
+    public boolean HasAuditor(){
+        return hasAuditor;
+    }
 }
+

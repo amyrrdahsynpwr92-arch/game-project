@@ -9,16 +9,22 @@ public class DrawBoard {
     private LeftSide left;
     private TopSide top;
     private Map map;
+    private RightSide right;
     private FadeTransition fadeTransition = new FadeTransition();
     private BorderPane currentPane; 
-    public DrawBoard(BorderPane currentPane, ArrayList<Player> players){
+    private boolean gameStoppage = false;
+    private int n;
+    public DrawBoard(BorderPane currentPane, ArrayList<Player> players, int n){
         this.currentPane = currentPane;
-        left = new LeftSide(players);
+        this.n = n;
+        left = new LeftSide(players, this);
         currentPane.setLeft(left);
-        top = new TopSide(currentPane);
+        top = new TopSide(currentPane, this);
         currentPane.setTop(top);
-        map = new Map(players.size(), players, this, 5);
+        map = new Map(players.size(), players, this, n);
         currentPane.setCenter(map);
+        right = new RightSide(this);
+        currentPane.setRight(right);
         fadeTransition.setFromValue(0.0);
         fadeTransition.setToValue(1.0);
         fadeTransition.setDuration(Duration.millis(6000));
@@ -35,7 +41,16 @@ public class DrawBoard {
     public Map getMap(){
         return map;
     }
+    public RightSide getRightSide(){
+        return right;
+    }
     public BorderPane getCurrentPane() {
         return currentPane;
+    }
+    public void setGameStoppage(boolean gameStoppage){
+        this.gameStoppage = gameStoppage;
+    }
+    public boolean getGameStoppage(){
+        return gameStoppage;
     }
 }

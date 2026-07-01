@@ -9,8 +9,8 @@ public class MVP extends CompanyStructure {
     }
     public MVP(){
         this.color = Color.RED;
-        setLayoutX(-2);
-        setLayoutY(-2);
+        setLayoutX(-1);
+        setLayoutY(-1);
         drawCompany();
     }
     @Override

@@ -35,6 +35,7 @@ public class Map extends Pane{
     private Handle_TurningGame handle_TurningGame;
     private ArrayList<Sector> sectors = new ArrayList<>();
     private ArrayList<Edge> edges = new ArrayList<>();
+    private ArrayList<Player> players = new ArrayList<>();
     private DrawBoard board;
     private DrawUndoButton undoButton;
     private int n;
@@ -42,6 +43,7 @@ public class Map extends Pane{
         undoButton = board.getTopSide().getUndoButton();
         this.n = n;
         this.numberOfPlayers = numberOfPlayers;
+        this.players = players;
         this.handle_TurningGame = new Handle_TurningGame(players);
         handle_preGame = new Handle_PreGame(players, handle_TurningGame);
         nodes = new Node[n+1][n+1];
@@ -73,8 +75,12 @@ public class Map extends Pane{
                 break;
             case 10: 
                 hGap.bind(widthProperty().divide(12.2));
-                vGap.bind(heightProperty().divide(12.2));
+                vGap.bind(heightProperty().divide(12.4));
                 break;     
+            case 15: 
+                hGap.bind(widthProperty().divide(17.9));
+                vGap.bind(heightProperty().divide(17.9));
+                break;    
         }
         background.fitWidthProperty().bind(widthProperty());
         background.fitHeightProperty().bind(heightProperty());
@@ -97,10 +103,11 @@ public class Map extends Pane{
         }
         for(int i=0; i<n+1; i++){
             for(int j=0; j<n+1; j++){
-                nodes[i][j] = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, undoButton);
-                nodes[i][j].layoutXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
-                nodes[i][j].layoutYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
-                nodes[i][j].getNodeShape().radiusProperty().bind(getWidth() > getHeight() ? widthProperty().divide(70) : heightProperty().divide(70));
+                Node node = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, undoButton);
+                nodes[i][j] = node;
+                node.layoutXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
+                node.layoutYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
+                node.getNodeShape().radiusProperty().bind(getWidth() > getHeight() ? widthProperty().divide(70) : heightProperty().divide(70));
             }
         }
         for(int i=0; i<n+1; i++){
@@ -130,9 +137,8 @@ public class Map extends Pane{
         }
         for(int i=0; i<n+1; i++){
             for(int j=0; j<n+1; j++){
-                Node node = nodes[i][j];
-                node.setNodes(nodes);
-                this.getChildren().add(node);
+                nodes[i][j].setNodes(nodes);
+                this.getChildren().add(nodes[i][j]);
             }
         }
         //new drawSourcesInformation(this);
@@ -160,10 +166,25 @@ public class Map extends Pane{
     //             text.setFill(Color.WHITE);
     //             text.setFont(Font.font(10));
     //             paneForComponent.getChildren().addAll(rec, text);
+  
     //             paneForComponent.layoutXProperty().bind(pane.widthProperty().subtract(gap.multiply(5)).divide(2).add(gap.multiply(i)));
     //             paneForComponent.layoutYProperty().bind(pane.heightProperty().subtract(gap.multiply(5)).divide(2).add(gap.multiply(5)));  
     //             pane.getChildren().add(paneForComponent);
     //         }
     //     }
     // }
+
+    public ArrayList<Sector> getSectors() {
+        return sectors;
+    }
+    public ArrayList<Edge> getEdges() {
+        return edges;
+    }
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
+    public Handle_TurningGame getHandle_TurningGame() {
+        return handle_TurningGame;
+    }
 }

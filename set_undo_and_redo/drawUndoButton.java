@@ -18,7 +18,11 @@ public class DrawUndoButton {
             return;
         }
         if(objects.get(objects.size() - 1) instanceof Node){
-            ((Node)objects.get(objects.size() - 1)).deleteMVP(player);
+            if(((Node)objects.get(objects.size() - 1)).HasUnicorn()){
+                ((Node)objects.get(objects.size() - 1)).deleteUnicorn(player);
+            }else{
+                ((Node)objects.get(objects.size() - 1)).deleteMVP(player);
+            }
             objects.remove(objects.size() - 1);
             numberOfMoves--;
         }else if(objects.get(objects.size() - 1) instanceof Edge){
@@ -30,6 +34,7 @@ public class DrawUndoButton {
     public void addStage(Object O, Player player){
         if(this.player != player || this.player == null){
             this.player = player;
+            objects.clear();
             numberOfMoves = 0;
         }
         objects.add(O);

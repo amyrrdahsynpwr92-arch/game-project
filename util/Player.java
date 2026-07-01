@@ -1,5 +1,6 @@
 package util;
 import type.PlayerRole;
+import type.State;
 import card.*;
 import java.util.ArrayList;
 import javafx.scene.paint.Color;
@@ -9,6 +10,7 @@ public class Player {
     private int PlayerNumber;
     private PlayerRole Role;
     private Color color;
+    private State state;
     private ArrayList<ResourceCard> myCards = new ArrayList<ResourceCard>();
     
     public Player(int PlayerNumber){

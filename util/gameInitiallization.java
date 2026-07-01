@@ -1,6 +1,5 @@
 package util;
 import java.util.ArrayList;
-import game_board.Map;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -10,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.control.TextField;
 import javafx.util.Duration;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -33,9 +33,11 @@ public class GameInitiallization{
     private ImageView image3 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/the_vc_funded.png")));
     private ImageView image4 = new ImageView(new Image(getClass().getResourceAsStream("/images/roles/null.jpg")));
     private MediaPlayer clickSound = new MediaPlayer(new Media(getClass().getResource("/voices/click.mp3").toExternalForm()));
+    private MediaPlayer errorSound = new MediaPlayer(new Media(getClass().getResource("/voices/error.mp3").toExternalForm()));
     private int playerIndex = 0;
     private Capital capital1 = new Capital();
     private Capital capital2 = new Capital();
+    private int n;
 
     public int getNumberOfPlayers() {
         return numberOfPlayers;
@@ -121,8 +123,56 @@ public class GameInitiallization{
                     clickSound.stop();
                     currentPane.getChildren().clear();
                     currentPane.getChildren().add(background);
-                    currentPane.setCenter(new SetPlayersNumber());
+                    currentPane.setCenter(new SetN());
                 });
+            });
+        }
+    }
+    class SetN extends VBox{
+        private FadeTransition fadeTransition = new FadeTransition(Duration.millis(1000), currentPane);
+        private Text text = new Text("width and height of board\n    (between 5 and 10):");
+        private Rectangle backText = new Rectangle();
+        private StackPane paneForText = new StackPane();
+        private TextField textField = new TextField();
+        public SetN(){
+            this.setSpacing(60);
+            text.setFont(Font.font("Roboto", FontWeight.BOLD, 27));
+            backText.setFill(Color.GREEN);
+            backText.setArcWidth(30);
+            backText.setArcHeight(30);
+            backText.setWidth(400);
+            backText.setHeight(90);
+            paneForText.getChildren().addAll(backText, text);
+            fadeTransition.setAutoReverse(false);
+            fadeTransition.setCycleCount(1);
+            fadeTransition.setFromValue(0.0);
+            fadeTransition.setToValue(1.0);
+            fadeTransition.play();
+            textField.setAlignment(Pos.CENTER);
+            textField.setPrefColumnCount(10);
+            textField.setPrefWidth(150);
+            textField.setMaxWidth(150);
+            textField.setFont(Font.font("Roboto", FontWeight.BOLD, 20));
+            this.setAlignment(Pos.CENTER);
+            this.setPadding(new Insets(40, 0, 40, 0));
+            this.getChildren().addAll(paneForText, textField); 
+            textField.setOnAction(e -> {
+                if(Integer.parseInt(textField.getText()) >= 5 && Integer.parseInt(textField.getText()) <= 10){
+                    clickSound.play();
+                    fadeTransition.setFromValue(1.0);
+                    fadeTransition.setToValue(0.0);
+                    fadeTransition.play();
+                    fadeTransition.setOnFinished(event -> {
+                        n = Integer.parseInt(textField.getText());
+                        clickSound.stop();
+                        currentPane.getChildren().clear();
+                        currentPane.getChildren().add(background);
+                        currentPane.setCenter(new SetPlayersNumber());
+                    });
+                }else{
+                    errorSound.stop();
+                    errorSound.play();
+                }
             });
         }
     }
@@ -279,7 +329,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players, n);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -301,7 +351,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players, n);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -311,10 +361,10 @@ public class GameInitiallization{
                 if(clickSound.getStatus() == MediaPlayer.Status.PLAYING)clickSound.stop();
                 clickSound.play();
                 paneForImages.getChildren().remove(image3);
+                players.get(playerIndex).getMyCards().add(capital1);
+                players.get(playerIndex).getMyCards().add(capital2);
                 if(numberOfPlayers > 1){
                     players.get(playerIndex).setRole(PlayerRole.The_VC_Funded);
-                    players.get(playerIndex).getMyCards().add(capital1);
-                    players.get(playerIndex).getMyCards().add(capital2);
                     playerIndex++;
                     numberOfPlayers--;
                     text.setText("The role of player " + Integer.toString(playerIndex+1) + ":");
@@ -325,7 +375,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players, n);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -347,7 +397,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players);
+                        new DrawBoard(currentPane, players, n);
                     });
                     fadeTransition.play();
                 }
