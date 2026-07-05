@@ -15,6 +15,8 @@ import javafx.geometry.Pos;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
+import game_board.DrawBoard;
+import set_undo_and_redo.DrawUndoButton;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -22,14 +24,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import graph.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.animation.FadeTransition;
 import javafx.scene.control.ContentDisplay;
 import card.*;
 import util.*;
-import graph.*;
-import set_undo_and_redo.*;
 
 public class TopSide extends HBox {
     int index = 0;
@@ -52,14 +53,10 @@ public class TopSide extends HBox {
         this.board = board;
         this.setBackground(new Background(new BackgroundFill(Color.TURQUOISE,CornerRadii.EMPTY,Insets.EMPTY)));
         this.setMinHeight(50);
-        undoButton = new DrawUndoButton();
-        //this.nodes = board.getMap().getNodes();
-        // this.edges = board.getMap().getEdges();
-        // this.sectors = board.getMap().getSectors();
-        // this.players = board.getMap().getPlayers();
+        undoButton = new DrawUndoButton(board);
         drawPlayerBox(1);
-        drawUndoButton();
         drawStatusPanel("player 1! please put a MVP");
+        drawUndoButton();
         drawPricesButton();
     }
     public void drawPlayerBox(int playerNumber){
@@ -72,22 +69,6 @@ public class TopSide extends HBox {
         playerBox.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5; -fx-text-fill: white");
         if(this.getChildren().size() > 0)this.getChildren().remove(0);
         this.getChildren().add(0, playerBox);
-    }
-    public void drawUndoButton(){
-        Button btUndo = new Button("Undo", undoImage);
-        undoImage.setFitHeight(20);
-        undoImage.setFitWidth(20);
-        undoImage.setPreserveRatio(true);
-        btUndo.setContentDisplay(ContentDisplay.RIGHT);
-        btUndo.setLayoutY(5);
-        btUndo.setPrefHeight(40);
-        btUndo.prefWidthProperty().bind(widthProperty().divide(6));
-        btUndo.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
-        btUndo.setTextFill(Color.WHITE);
-        btUndo.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
-        if(this.getChildren().size() > 1)this.getChildren().remove(1);
-        this.getChildren().add(1, btUndo);
-        btUndo.setOnAction(e -> undoButton.loadPrevoiusStage());
     }
     public void drawStatusPanel(String status){
         if(board.getGameStoppage())return;
@@ -119,18 +100,34 @@ public class TopSide extends HBox {
         writingAnimation.setCycleCount(status.length());
         writingAnimation.setOnFinished(e -> motivateSign.play());
         writingAnimation.play();
-        statusBox.prefWidthProperty().bind(widthProperty().divide(3));
+        statusBox.prefWidthProperty().bind(widthProperty().divide(2));
+        if(this.getChildren().size() > 1)this.getChildren().remove(1);
+        this.getChildren().add(1, statusBox);
+    }
+    public void drawUndoButton(){
+        Button btUndo = new Button("Undo", undoImage);
+        undoImage.setFitHeight(20);
+        undoImage.setFitWidth(20);
+        undoImage.setPreserveRatio(true);
+        btUndo.setContentDisplay(ContentDisplay.RIGHT);
+        btUndo.setLayoutY(5);
+        btUndo.setPrefHeight(40);
+        btUndo.prefWidthProperty().bind(widthProperty().divide(6));
+        btUndo.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
+        btUndo.setTextFill(Color.WHITE);
+        btUndo.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         if(this.getChildren().size() > 2)this.getChildren().remove(2);
-        this.getChildren().add(2, statusBox);
+        this.getChildren().add(2, btUndo);
+        btUndo.setOnAction(e -> undoButton.loadPrevoiusStage());
     }
     public void drawPricesButton(){
         Button btPrices = new Button("prices of sources");
         btPrices.setLayoutY(5);
         btPrices.setPrefHeight(40);
-        btPrices.prefWidthProperty().bind(widthProperty().divide(3));
+        btPrices.prefWidthProperty().bind(widthProperty().divide(6));
         btPrices.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
         btPrices.setTextFill(Color.WHITE);
-        btPrices.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
+        btPrices.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         if(this.getChildren().size() > 3)this.getChildren().remove(3);
         this.getChildren().add(3, btPrices);
         btPrices.setOnAction(e -> drawPricesOfSources());
@@ -201,6 +198,7 @@ public class TopSide extends HBox {
         Node oldCenter = currentPane.getCenter();
         Node oldTop = currentPane.getTop();
         Node oldRight = currentPane.getRight();
+        Node oldBottom = currentPane.getBottom();
         btOK.setOnAction(e -> {
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
@@ -210,6 +208,7 @@ public class TopSide extends HBox {
                 currentPane.setCenter(oldCenter);
                 currentPane.setTop(oldTop);
                 currentPane.setRight(oldRight);
+                currentPane.setBottom(oldBottom);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
                 fadeIn.play();

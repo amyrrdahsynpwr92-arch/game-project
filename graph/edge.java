@@ -1,5 +1,6 @@
 package graph;
 import java.util.ArrayList;
+import graph.*;
 import card.*;
 import game_board.DrawBoard;
 import util.*;
@@ -22,16 +23,17 @@ public class Edge extends Line {
     private ArrayList<Edge> edges = new ArrayList<>();
     private int edgeNumber;
     private Integer maxDistance = 0;
-    private static final Media soundAddress = new Media(Edge.class.getResource("/voices/error.mp3").toExternalForm());
-    private MediaPlayer errorSound = new MediaPlayer(soundAddress);
+    private MediaPlayer errorSound;
     private Handle_TurningGame handle_TurningGame;
     private DrawBoard board;
     private DrawUndoButton undoButton;
+    private boolean giveScore = false;
     public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, DrawUndoButton undoButton){
         this.handle_preGame = handle_PreGame;
         this.handle_TurningGame = handle_TurningGame;
         this.start = start;
         this.end = end;
+        errorSound = start.getErrorSound();
         this.edgeNumber = edgeNumber;
         this.setStrokeWidth(6);
         this.setStroke(Color.WHITE);
@@ -40,7 +42,7 @@ public class Edge extends Line {
         this.setOnMouseClicked(e -> drawPartnership());
     }
     public void drawPartnership(){
-        if(board.getGameStoppage())return;
+        if(board.getGameStoppage() || board.getDownSide().getMoveAuditor() || board.getDownSide().getOnTrade() == handle_TurningGame.getCurrentPlayer().getPlayerNumber())return;
         Capital capital = null;
         Patent patent = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
@@ -55,8 +57,11 @@ public class Edge extends Line {
                 Platform.runLater(() -> {
                     if(handle_preGame.isPreGame())
                         board.getTopSide().drawStatusPanel("player " + Integer.toString(handle_preGame.getCurrentPlayer().getPlayerNumber()) + "! please put a MVP");
-                    else
+                    else{
                         board.getTopSide().drawStatusPanel("player 1! this is your turn, roll dices");
+                        undoButton.setNumberOfMoves(0);
+                        undoButton.getObjects().clear();
+                    }
                 });
                 undoButton.addStage(this, currentPlayer);
             }else{
@@ -76,7 +81,7 @@ public class Edge extends Line {
                     break;
                 }
             }
-            if(capital != null && patent != null){
+            if(capital != null && patent != null && validate()){
                 this.setStroke(currentPlayer.getColor());
                 this.setStrokeWidth(10);
                 cards.remove(capital);
@@ -87,6 +92,7 @@ public class Edge extends Line {
                 undoButton.addStage(this, currentPlayer);
                 if(new LongestPath(edges, this, maxDistance).bfs()){
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
+                    this.giveScore = true;
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
                 }
             }else{
@@ -132,6 +138,22 @@ public class Edge extends Line {
         this.hasPartnership = false;
         handle_preGame.setTurn(2);
         handle_preGame.NotifyBack();
+        for(Color color: start.getLinkedPartnerships()){
+            if(color == player.getColor()){
+                start.getLinkedPartnerships().remove(color);
+                break;
+            }
+        }
+        for(Color color: end.getLinkedPartnerships()){
+            if(color == player.getColor()){
+                end.getLinkedPartnerships().remove(color);
+                break;
+            }
+        }
+        if(this.giveScore){
+            player.setScore(player.getScore() - 2);
+            this.giveScore = false;
+        }
         if(handle_TurningGame.isTurning_Game()){
             ArrayList<ResourceCard> cards = currentPlayer.getMyCards();
             cards.add(new Capital());

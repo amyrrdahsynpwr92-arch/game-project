@@ -7,8 +7,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
 import javafx.scene.shape.Circle;
-import set_undo_and_redo.DrawUndoButton;
 import type.PlayerRole;
+import set_undo_and_redo.DrawUndoButton;
 import javafx.scene.paint.Color;
 import javafx.application.Platform;
 import game_board.DrawBoard;
@@ -35,12 +35,14 @@ public class Node extends Pane{
     private ArrayList<Color> linkedPartnerships = new ArrayList<>();
     private DrawBoard board;
     private DrawUndoButton undoButton; 
+    private int n;
     public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, DrawUndoButton undoButton){
         this.handle_preGame = handle_preGame;
         this.handle_TurningGame = handle_TurningGame;
         this.row = row;
         this.col = col;
         this.sectors = sectors;
+        this.n = board.getN();
         nodeShape = new Circle(5);
         nodeShape.setStyle("-fx-fill: black; -fx-stroke: white");
         nodeShape.setCenterX(0);
@@ -57,7 +59,11 @@ public class Node extends Pane{
         return col;
     }
     public void drawMVP(int row, int col){
-        if(board.getGameStoppage())return;
+        if(board.getGameStoppage() || board.getDownSide().getMoveAuditor() || board.getDownSide().getOnTrade() == handle_TurningGame.getCurrentPlayer().getPlayerNumber()){
+            errorSound.stop();
+            errorSound.play();
+            return;
+        }
         nodeMVP = new MVP();
         Capital capital = null;
         Talent talent = null;
@@ -86,8 +92,15 @@ public class Node extends Pane{
                 undoButton.addStage(this, currentPlayer);
                 for(Sector sector: sectors){
                     if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                        if(!(sector.getResource() instanceof Null || sector.HasAuditor()))sector.addMyPlayers(currentPlayer);
+                        if(!(sector.getResource() instanceof Null || sector.HasAuditor())){
+                            cards.add(sector.getResource());
+                            sector.getMvpPlayers().add(currentPlayer);
+                        }
                 }
+                Platform.runLater(() -> {
+                    board.getRightSide().drawTotalCards();
+                    board.getLeftSide().drawMyCards(currentPlayer);
+                });
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -124,8 +137,14 @@ public class Node extends Pane{
                 valid = true;
                 for(Sector sector: sectors){
                     if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                        if(!(sector.getResource() instanceof Null || sector.getMyPlayers().contains(currentPlayer)))sector.addMyPlayers(currentPlayer);
+                        if(!(sector.getResource() instanceof Null)){
+                            sector.getMvpPlayers().add(currentPlayer);
+                        }
                 }
+                Platform.runLater(() -> {
+                    board.getRightSide().drawTotalCards();
+                    board.getLeftSide().drawMyCards(currentPlayer);
+                });
             }else{
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
@@ -134,15 +153,13 @@ public class Node extends Pane{
             errorSound.stop(); // it may is playing already
             errorSound.play();
         }
-        for(Sector sector: sectors){
-            if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                if(!(sector.getResource() instanceof Null))cards.add(sector.getResource());
-        }
-        Platform.runLater(() -> board.getRightSide().drawTotalCards());
-        if(valid)Platform.runLater(() -> board.getLeftSide().drawMyCards(currentPlayer));
     }
     public void drawUnicorn(){
-        if(board.getGameStoppage())return;
+        if(board.getGameStoppage() || board.getDownSide().getMoveAuditor() || board.getDownSide().getOnTrade() == handle_TurningGame.getCurrentPlayer().getPlayerNumber() || this.getNodeShape().getFill() != currentPlayer.getColor()){
+            errorSound.stop();
+            errorSound.play();
+            return;
+        }
         nodeUnicorn = new Unicorn();
         Cloud cloud1 = null;
         Cloud cloud2 = null;
@@ -186,8 +203,7 @@ public class Node extends Pane{
                     for(Sector sector: sectors){
                         if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                             if(!(sector.getResource() instanceof Null)){
-                                cards.add(sector.getResource());
-                                cards.add(sector.getResource());
+                                sector.getUnicornPlayers().add(currentPlayer);
                             }
                     }
                     Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
@@ -226,7 +242,7 @@ public class Node extends Pane{
         }
     }
     public boolean validate(int row, int col){
-        if((col>0 && nodes[col-1][row].hasMVP) || (col<4 && nodes[col+1][row].hasMVP) || (row>0 && nodes[col][row-1].hasMVP) || (row<4 && nodes[col][row+1].hasMVP))
+        if((col>0 && nodes[col-1][row].hasMVP) || (col<n-1 && nodes[col+1][row].hasMVP) || (row>0 && nodes[col][row-1].hasMVP) || (row<n-1 && nodes[col][row+1].hasMVP))
             return false;
         if(handle_preGame.isPreGame() && handle_preGame.getTurn() == 2)
             return false;
@@ -301,10 +317,7 @@ public class Node extends Pane{
     @Override
     public boolean equals(Object o){
         Node node = (Node)o;
-        if(this.row == node.row && this.col == node.col)
-            return true;
-        else 
-            return false;
+        return this.row == node.row && this.col == node.col;
     }
     public void setNodes(Node[][] nodes) {
         this.nodes = nodes;
@@ -321,6 +334,10 @@ public class Node extends Pane{
     }
     public boolean HasUnicorn() {
         return hasUnicorn;
+    }
+
+    public MediaPlayer getErrorSound() {
+        return errorSound;
     }
 }
 

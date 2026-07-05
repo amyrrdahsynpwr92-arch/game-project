@@ -27,7 +27,8 @@ public class Sector extends Pane{
     private int row;
     private int col;
     private ResourceCard resource;
-    private ArrayList<Player> myPlayers = new ArrayList<>();
+    private ArrayList<Player> mvpPlayers = new ArrayList<>();
+    private ArrayList<Player> unicornPlayers = new ArrayList<>();
     private boolean hasAuditor;
 
     public Sector(ResourceCard resource, int row, int col){
@@ -161,12 +162,12 @@ public class Sector extends Pane{
     public Rectangle getSectorShape() {
         return sectorShape;
     }
-    public void addMyPlayers(Player player){
-        myPlayers.add(player);
-    }
 
-    public ArrayList<Player> getMyPlayers() {
-        return myPlayers;
+    public ArrayList<Player> getMvpPlayers() {
+        return mvpPlayers;
+    }
+    public ArrayList<Player> getUnicornPlayers() {
+        return unicornPlayers;
     }
     public int getNumber() {
         return number;

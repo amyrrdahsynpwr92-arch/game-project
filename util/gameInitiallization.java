@@ -130,7 +130,7 @@ public class GameInitiallization{
     }
     class SetN extends VBox{
         private FadeTransition fadeTransition = new FadeTransition(Duration.millis(1000), currentPane);
-        private Text text = new Text("width and height of board\n    (between 5 and 10):");
+        private Text text = new Text("width and height of board\n     (between 5 and 10):");
         private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
         private TextField textField = new TextField();

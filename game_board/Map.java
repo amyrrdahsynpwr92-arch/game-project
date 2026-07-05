@@ -15,14 +15,16 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import game_board.DrawBoard;
 import set_undo_and_redo.DrawUndoButton;
 import javafx.scene.text.Font;
 import util.Handle_PreGame;
 import util.Handle_TurningGame;
 import util.Player;
 import util.Sector;
-import graph.*; 
-import card.*; 
+import card.*;
+import graph.Edge;
+import graph.Node;
 import javafx.scene.shape.Rectangle;
 
 public class Map extends Pane{
@@ -176,6 +178,9 @@ public class Map extends Pane{
 
     public ArrayList<Sector> getSectors() {
         return sectors;
+    }
+    public Node[][] getNodes() {
+        return nodes;
     }
     public ArrayList<Edge> getEdges() {
         return edges;

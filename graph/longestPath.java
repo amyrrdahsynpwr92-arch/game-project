@@ -15,14 +15,14 @@ public class LongestPath {
     public ArrayList<Edge> setNeighbors(Edge e1){
         ArrayList<Edge> neighbors = new ArrayList<>();
         for(Edge e2: edges){
-            if((e1.getStart().equals(e2.getStart()) || e1.getEnd().equals(e2.getEnd())) && !(e1.getStart().equals(e2.getStart()) && e1.getEnd().equals(e2.getEnd())) && e1.getStroke().equals(e2.getStroke())){
+            if((e1.getStart().equals(e2.getStart()) || e1.getEnd().equals(e2.getEnd())) && !(e1.getStart().equals(e2.getStart()) && e1.getEnd().equals(e2.getEnd())) && e1.getStroke() == e2.getStroke()){
                 neighbors.add(e2);
             }
         }
         return neighbors;
     }
     public boolean bfs(){
-        boolean[] visited = new boolean[100];
+        boolean[] visited = new boolean[300];
         Queue<Edge> queue = new LinkedList<>();
         int dis = 0;
         visited[edge.getEdgeNumber()] = true;

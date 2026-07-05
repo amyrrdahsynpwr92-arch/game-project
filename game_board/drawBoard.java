@@ -3,6 +3,7 @@ import javafx.animation.FadeTransition;
 import javafx.scene.layout.BorderPane;
 import java.util.ArrayList;
 import javafx.util.Duration;
+import game_board.*;
 import util.Player;
 
 public class DrawBoard {
@@ -10,6 +11,7 @@ public class DrawBoard {
     private TopSide top;
     private Map map;
     private RightSide right;
+    private DownSide down;
     private FadeTransition fadeTransition = new FadeTransition();
     private BorderPane currentPane; 
     private boolean gameStoppage = false;
@@ -25,6 +27,9 @@ public class DrawBoard {
         currentPane.setCenter(map);
         right = new RightSide(this);
         currentPane.setRight(right);
+        down = new DownSide(map.getHandle_TurningGame(), this);
+        currentPane.setBottom(down);
+        this.currentPane.getChildren().add(down.getAuditor());
         fadeTransition.setFromValue(0.0);
         fadeTransition.setToValue(1.0);
         fadeTransition.setDuration(Duration.millis(6000));
@@ -44,6 +49,9 @@ public class DrawBoard {
     public RightSide getRightSide(){
         return right;
     }
+    public DownSide getDownSide(){
+        return down;
+    }
     public BorderPane getCurrentPane() {
         return currentPane;
     }
@@ -52,5 +60,9 @@ public class DrawBoard {
     }
     public boolean getGameStoppage(){
         return gameStoppage;
+    }
+
+    public int getN() {
+        return n;
     }
 }

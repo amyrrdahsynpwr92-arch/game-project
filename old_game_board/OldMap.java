@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
+import board_graph.*;
 import card.Capital;
 import card.Cloud;
 import card.Null;
@@ -10,6 +12,8 @@ import card.Patent;
 import card.ResourceCard;
 import card.Talent;
 import game_board.DrawBoard;
+import graph.Edge;
+import graph.Node;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
@@ -18,9 +22,9 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import set_undo_and_redo.*;
+import set_undo_and_redo.DrawUndoButton;
+import undo_and_redo.*;
 import util.*;
-import graph.*;
 
 public class OldMap {
     private ArrayList<Node> nodes;

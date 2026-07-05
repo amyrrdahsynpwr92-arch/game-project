@@ -12,23 +12,29 @@ public class Market {
         switch(card){
             case Capital:
                 (cards.get(0).price)++;
+                cards.get(0).unused_turns = 0;
                 break;
             case Cloud:
                 (cards.get(1).price)++;
+                cards.get(1).unused_turns = 0;
                 break;
             case Data:
                 (cards.get(2).price)++;
+                cards.get(2).unused_turns = 0;
                 break;
             case Patent:
                 (cards.get(3).price)++;
+                cards.get(3).unused_turns = 0;
                 break;
             case Talent:
                 (cards.get(4).price)++;
+                cards.get(4).unused_turns = 0;
                 break;
         }
     }
     public void setPrices(){
         for(ResourceCard resourceCard: cards){
+            resourceCard.unused_turns++;
             if((resourceCard.unused_turns % 3) == 0){
                 resourceCard.price = (resourceCard.price > 0 ? resourceCard.price - 1 : 0);
             }

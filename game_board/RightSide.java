@@ -1,21 +1,16 @@
 package game_board;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.animation.FadeTransition;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.application.Platform;
-import javafx.geometry.Bounds;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
@@ -24,9 +19,6 @@ import util.*;
 
 public class RightSide extends VBox {
     private ArrayList<Player> players;
-    private ImageView dice1 = new ImageView(new Image(getClass().getResourceAsStream("/images/details/dice.png")));
-    private ImageView dice2 = new ImageView(new Image(getClass().getResourceAsStream("/images/details/dice.png")));
-    private ImageView auditor = new ImageView(new Image(getClass().getResourceAsStream("/images/details/auditor.png")));
     private String sum = "";
     private DrawBoard board;
     private boolean dicesRolled = false;
@@ -39,16 +31,8 @@ public class RightSide extends VBox {
     public RightSide(DrawBoard board){
         this.board = board;
         players = board.getMap().getPlayers();
-        dice1.setFitHeight(70);
-        dice1.setFitWidth(70);
-        dice1.setPreserveRatio(true);
-        dice1.setSmooth(true);
-        dice2.setFitHeight(70);
-        dice2.setFitWidth(70);
-        dice2.setPreserveRatio(true);
-        dice2.setSmooth(true);
-        this.setMaxWidth(100);
         this.sectors = board.getMap().getSectors();
+        this.setMaxWidth(100);
         drawTotalCards();
         drawDices();
         drawSumOfDices();
@@ -71,6 +55,8 @@ public class RightSide extends VBox {
         this.getChildren().add(0, vbox);
     }
     public void drawDices(){
+        ImageView dice1 = new ImageView(new Image(getClass().getResourceAsStream("/images/details/dice.png")));
+        ImageView dice2 = new ImageView(new Image(getClass().getResourceAsStream("/images/details/dice.png")));
         FadeTransition fadeOutForDice = new FadeTransition();
         FadeTransition fadeOutForText= new FadeTransition();
         FadeTransition fadeIn = new FadeTransition();
@@ -85,6 +71,14 @@ public class RightSide extends VBox {
         fadeIn.setDuration(Duration.millis(500));
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
+        dice1.setFitHeight(70);
+        dice1.setFitWidth(70);
+        dice1.setPreserveRatio(true);
+        dice1.setSmooth(true);
+        dice2.setFitHeight(70);
+        dice2.setFitWidth(70);
+        dice2.setPreserveRatio(true);
+        dice2.setSmooth(true);
         Text text1 = new Text("Dice 1");
         Text text2 = new Text("Dice 2");
         text1.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
@@ -138,11 +132,26 @@ public class RightSide extends VBox {
                     dicesRolled = true;
                     for(Sector sector: sectors){
                         if(!(sector.getResource() instanceof Null) && sector.getNumber() == Integer.parseInt(sum)){
-                            sector.getMyPlayers().stream().map(p -> p.getMyCards()).forEach(c -> c.add(sector.getResource()));
+                            sector.getMvpPlayers().stream().map(p -> p.getMyCards()).forEach(c -> c.add(sector.getResource()));
+                            sector.getUnicornPlayers().stream().map(p -> p.getMyCards()).forEach(c -> {
+                                c.add(sector.getResource());
+                                c.add(sector.getResource());
+                            });
                         }
                     }
-                    Platform.runLater(() -> board.getLeftSide().drawMyCards(players.get(0)));
-                    //Platform.runLater(() -> drawAuditor());
+                    Platform.runLater(() -> {
+                        board.getLeftSide().drawMyCards(players.get(0));
+                        if(Integer.parseInt(sum) == 7){
+                            board.getDownSide().setMoveAuditor(true);
+                            board.getTopSide().drawStatusPanel("sum equals to 7. move auditor piece to any possible sector");
+                            board.getDownSide().ReDrawAuditor();
+                        }else{
+                            if(board.getMap().getHandle_TurningGame().getCurrentPlayer().getOnTradeRequest())
+                                board.getTopSide().drawStatusPanel("Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + "! you have a Trade request. check trade panel");
+                            else 
+                                board.getTopSide().drawStatusPanel("All resources are obtained! Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + ", Do you turn");
+                        }
+                    });
                     drawSumOfDices();
                     fadeIn.setNode(text);
                     fadeIn.play();
@@ -159,61 +168,6 @@ public class RightSide extends VBox {
         if(this.getChildren().size() > 3)this.getChildren().remove(3);
         this.getChildren().add(3, text);
     }
-    public void drawAuditor(){
-        Rectangle auditorBack = new Rectangle();
-        auditor.setFitWidth(70);
-        auditor.setFitHeight(70);
-        auditor.setSmooth(true);
-        auditor.setPreserveRatio(true);
-        auditor.setOpacity(1.0);
-        auditor.setLayoutX(800);
-        auditor.setLayoutY(600);
-        board.getCurrentPane().getChildren().add(auditor);
-        auditorBack.setFill(Color.rgb(20, 20, 20));
-
-        auditorBack.setStroke(Color.TURQUOISE);
-        auditorBack.setStrokeWidth(5);        
-        auditorBack.setHeight(this.getPrefWidth());
-        auditorBack.setHeight(50);
-        auditor.setOnMousePressed(e -> {
-            startX = auditor.getLayoutX();
-            startY = auditor.getLayoutY();
-            offsetX = e.getX();
-            offsetY = e.getY();
-        });
-
-        auditor.setOnMouseDragged(e -> {
-            // Point2D p = board.getMap().sceneToLocal(e.getSceneX(), e.getSceneY());
-
-            // auditor.setLayoutX(p.getX() - offsetX);
-            // auditor.setLayoutY(p.getY() - offsetY);
-            auditor.setX(e.getX() - 7);
-            auditor.setY(e.getY() - 7);
-        });
-        auditor.setOnMouseReleased(e -> {
-            Bounds auditorBounds = auditor.localToScene(auditor.getBoundsInLocal());
-    
-            for (Sector sector : sectors) {
-                Bounds sectorBounds = sector.localToScene(sector.getBoundsInLocal());
-                if (auditorBounds.intersects(sectorBounds)) {
-                    if(!sector.getMyPlayers().isEmpty()){
-                        auditor.setLayoutX(sector.getLayoutX() + (sector.getWidth() - auditor.getFitWidth()) / 2);
-                        auditor.setLayoutY(sector.getLayoutY() + (sector.getHeight() - auditor.getFitHeight()) / 2);
-                        sector.setHasAuditor(true);
-                        auditor.setOpacity(0.5);
-                        // auditor.layoutXProperty().bind(sector.widthProperty().divide(2));
-                        // auditor.layoutYProperty().bind(sector.heightProperty().divide(2));
-                    }else{
-                        auditor.setLayoutX(startX);
-                        auditor.setLayoutY(startY);
-                    }
-                    break;
-                }
-            }
-        });
-        if(this.getChildren().size() > 4)this.getChildren().remove(4);
-        this.getChildren().add(4, auditorBack);
-    }
 
     public boolean getDicesRolled() {
         return dicesRolled;
@@ -221,5 +175,8 @@ public class RightSide extends VBox {
 
     public void setDicesRolled(boolean dicesRolled) {
         this.dicesRolled = dicesRolled;
+    }
+    public void setSum(String sum){
+        this.sum = sum;
     }
 }

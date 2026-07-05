@@ -1,5 +1,4 @@
 package util;
-
 import java.util.ArrayList;
 
 public class Handle_TurningGame {
