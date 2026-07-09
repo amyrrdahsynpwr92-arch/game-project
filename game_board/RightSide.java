@@ -14,7 +14,8 @@ import javafx.application.Platform;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
-import card.Null;
+
+import cards.Null;
 import util.*;
 
 public class RightSide extends VBox {
@@ -140,13 +141,13 @@ public class RightSide extends VBox {
                         }
                     }
                     Platform.runLater(() -> {
-                        board.getLeftSide().drawMyCards(players.get(0));
+                        board.getLeftSide().drawMyCards(board.getMap().getHandle_TurningGame().getCurrentPlayer());
                         if(Integer.parseInt(sum) == 7){
                             board.getDownSide().setMoveAuditor(true);
                             board.getTopSide().drawStatusPanel("sum equals to 7. move auditor piece to any possible sector");
                             board.getDownSide().ReDrawAuditor();
                         }else{
-                            if(board.getMap().getHandle_TurningGame().getCurrentPlayer().getOnTradeRequest())
+                            if(board.getMap().getHandle_TurningGame().getCurrentPlayer().getOnTradeRequest() > 0)
                                 board.getTopSide().drawStatusPanel("Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + "! you have a Trade request. check trade panel");
                             else 
                                 board.getTopSide().drawStatusPanel("All resources are obtained! Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + ", Do you turn");

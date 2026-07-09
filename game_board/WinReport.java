@@ -27,18 +27,8 @@ public class WinReport {
         pane.getChildren().addAll(box, text);
         pane.layoutXProperty().bind(currentPane.widthProperty().divide(2));
         pane.layoutYProperty().bind(currentPane.heightProperty().divide(2));
-        // pane.setPrefWidth(0);
-        // pane.setPrefHeight(0);
-        box.setFitWidth(500);
-        box.setFitHeight(500);
-        // Timeline timeline = new Timeline(new KeyFrame (Duration.millis(1000), e -> {
-        //     if(pane.getPrefWidth() < 300){
-        //         pane.setPrefWidth(pane.getPrefWidth() + 1);
-        //         pane.setPrefHeight(pane.getPrefHeight() + 1);
-        //     }
-        // }));
-        // timeline.setCycleCount(Timeline.INDEFINITE);
-        // timeline.play();
+        box.setFitWidth(600);
+        box.setFitHeight(600);
         currentPane.getChildren().add(pane);
         pane.setScaleX(0);
         pane.setScaleY(0);
@@ -49,5 +39,10 @@ public class WinReport {
         st.setToX(1);
         st.setToY(1);
         st.play();
+        currentPane.getTop().setOpacity(0.5);
+        currentPane.getBottom().setOpacity(0.5);
+        currentPane.getCenter().setOpacity(0.5);
+        currentPane.getRight().setOpacity(0.5);
+        currentPane.getLeft().setOpacity(0.5);
     }
 }

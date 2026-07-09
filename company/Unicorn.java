@@ -16,10 +16,10 @@ public class Unicorn extends CompanyStructure {
     }
     @Override
     public void drawCompany(){
-        shape.setWidth(35);
-        shape.setHeight(35);
-        shape.setArcWidth(15);
-        shape.setArcHeight(15);
+        shape.setWidth(30);
+        shape.setHeight(30);
+        shape.setArcWidth(12);
+        shape.setArcHeight(12);
         shape.setFill(color);
         shape.setStroke(Color.BLACK);
         shape.setStrokeWidth(3);

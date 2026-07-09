@@ -1,5 +1,13 @@
 package card;
 import java.util.List;
+
+import cards.Capital;
+import cards.Cloud;
+import cards.Data;
+import cards.Patent;
+import cards.ResourceCard;
+import cards.Talent;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import type.*;
@@ -8,8 +16,8 @@ import type.*;
 public class Market {
     private List<ResourceCard> cards = Arrays.asList(new Capital(), new Cloud(), new Data(), new Patent(), new Talent());
     
-    public void IncreasePrice(ProductionResources card){
-        switch(card){
+    public void IncreasePrice(ProductionResources resourceType){
+        switch(resourceType){
             case Capital:
                 (cards.get(0).price)++;
                 cards.get(0).unused_turns = 0;

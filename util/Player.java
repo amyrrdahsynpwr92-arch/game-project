@@ -1,7 +1,18 @@
 package util;
 import type.*;
-import card.*;
+
 import java.util.ArrayList;
+import java.util.Map;
+
+import card.Capital;
+import card.Cloud;
+import card.Data;
+import card.Patent;
+import card.ResourceCard;
+import card.Talent;
+import cards.*;
+
+import java.util.HashMap;
 import javafx.scene.paint.Color;
 
 public class Player {
@@ -9,10 +20,11 @@ public class Player {
     private int PlayerNumber;
     private PlayerRole Role;
     private Color color;
-    private State state;
     private ArrayList<ResourceCard> myCards = new ArrayList<ResourceCard>();
-    private boolean onTradeRequest = false;
+    private int onTradeRequest = 0;
     private boolean onTax = false;
+    private Map<Player, ArrayList<ResourceCard>> myTrades = new HashMap<>();
+
     public Player(int PlayerNumber){
         this.PlayerNumber = PlayerNumber;
         setColor();
@@ -102,10 +114,10 @@ public class Player {
         long count = myCards.stream().filter(r -> r instanceof Talent).count();
         return count;
     }
-    public void setOnTradeRequest(boolean onTradeRequest){
+    public void setOnTradeRequest(int onTradeRequest){
         this.onTradeRequest = onTradeRequest;
     }
-    public boolean getOnTradeRequest(){
+    public int getOnTradeRequest(){
         return onTradeRequest;
     }
     public void setOnTax(boolean onTax){
@@ -113,5 +125,8 @@ public class Player {
     }
     public boolean getOnTax(){
         return onTax;
+    }
+    public Map<Player, ArrayList<ResourceCard>> getMyTrades(){
+        return myTrades;
     }
 }

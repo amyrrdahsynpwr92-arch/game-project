@@ -21,4 +21,5 @@ public class MVP extends CompanyStructure {
         shape.setStrokeWidth(3);
         this.getChildren().add(shape);
     }
+
 }

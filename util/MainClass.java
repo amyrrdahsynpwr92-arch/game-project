@@ -4,7 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 
-public class ExecutionClass extends Application {
+public class MainClass extends Application {
     private BorderPane currentPane = new BorderPane();
     private GameInitiallization gameInitiallization = new GameInitiallization(currentPane);
     @Override

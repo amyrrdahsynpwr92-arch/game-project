@@ -1,5 +1,8 @@
 package util;
 import java.util.ArrayList;
+
+import card.Capital;
+import cards.*;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -20,7 +23,6 @@ import javafx.scene.image.Image;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import game_board.DrawBoard;
-import card.*;
 
 public class GameInitiallization{
     private BorderPane currentPane;
@@ -38,6 +40,7 @@ public class GameInitiallization{
     private Capital capital1 = new Capital();
     private Capital capital2 = new Capital();
     private int n;
+    private ImageView backText = new ImageView(new Image(getClass().getResourceAsStream("/images/details/backText.png")));
 
     public int getNumberOfPlayers() {
         return numberOfPlayers;
@@ -81,8 +84,8 @@ public class GameInitiallization{
     }
     class loadGame extends VBox{
         private FadeTransition fadeTransition = new FadeTransition(Duration.millis(2000), currentPane);
-        private Text text = new Text("play the previous game?");
-        private Rectangle backText = new Rectangle();
+        private Text text = new Text(" play the previous game?");
+        // private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
         HBox paneForButtons = new HBox(15);
         private Button btYes = new Button("Yes");
@@ -90,11 +93,12 @@ public class GameInitiallization{
         public loadGame(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 30));
-            backText.setFill(Color.RED);
-            backText.setArcWidth(30);
-            backText.setArcHeight(30);
-            backText.setWidth(400);
-            backText.setHeight(60);
+            // backText.setFill(Color.RED);
+            // backText.setArcWidth(30);
+            // backText.setArcHeight(30);
+            backText.setFitWidth(2000);
+            backText.setFitHeight(140);
+            backText.setPreserveRatio(true);
             btYes.setPrefSize(150, 50);
             btNo.setPrefSize(150, 50);
             btYes.setFont(Font.font(50));
@@ -130,18 +134,18 @@ public class GameInitiallization{
     }
     class SetN extends VBox{
         private FadeTransition fadeTransition = new FadeTransition(Duration.millis(1000), currentPane);
-        private Text text = new Text("width and height of board\n     (between 5 and 10):");
-        private Rectangle backText = new Rectangle();
+        private Text text = new Text("width and height of board\n      (between 5 and 10):");
+        //private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
         private TextField textField = new TextField();
         public SetN(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 27));
-            backText.setFill(Color.GREEN);
-            backText.setArcWidth(30);
-            backText.setArcHeight(30);
-            backText.setWidth(400);
-            backText.setHeight(90);
+            //backText.setFill(Color.GREEN);
+            // backText.setArcWidth(30);
+            // backText.setArcHeight(30);
+            backText.setFitWidth(400);
+            backText.setFitHeight(150);
             paneForText.getChildren().addAll(backText, text);
             fadeTransition.setAutoReverse(false);
             fadeTransition.setCycleCount(1);
@@ -178,8 +182,8 @@ public class GameInitiallization{
     }
     class SetPlayersNumber extends VBox{
         private FadeTransition fadeTransition = new FadeTransition(Duration.millis(1000), currentPane);
-        private Text text = new Text("Specify the number of players:");
-        private Rectangle backText = new Rectangle();
+        private Text text = new Text(" Number of players:");
+        //private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
         HBox paneForButtons = new HBox(15);
         private Button bt1 = new Button("2");
@@ -188,11 +192,11 @@ public class GameInitiallization{
         public SetPlayersNumber(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 27));
-            backText.setFill(Color.TURQUOISE);
-            backText.setArcWidth(30);
-            backText.setArcHeight(30);
-            backText.setWidth(400);
-            backText.setHeight(60);
+            // backText.setFill(Color.TURQUOISE);
+            // backText.setArcWidth(30);
+            // backText.setArcHeight(30);
+            backText.setFitWidth(1000);
+            backText.setFitHeight(120);
             bt1.setPrefSize(100, 50);
             bt2.setPrefSize(100, 50);
             bt3.setPrefSize(100, 50);

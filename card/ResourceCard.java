@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 import type.*;
 
 public class ResourceCard {
-    protected int price = 4;
+    protected int price = 1;
     protected int unused_turns;
     protected ProductionResources type;
     protected ImageView symbol;

@@ -15,16 +15,18 @@ public class DrawBoard {
     private FadeTransition fadeTransition = new FadeTransition();
     private BorderPane currentPane; 
     private boolean gameStoppage = false;
+    private ArrayList<Player> players;
     private int n;
     public DrawBoard(BorderPane currentPane, ArrayList<Player> players, int n){
         this.currentPane = currentPane;
         this.n = n;
-        left = new LeftSide(players, this);
-        currentPane.setLeft(left);
+        this.players = players;
         top = new TopSide(currentPane, this);
         currentPane.setTop(top);
         map = new Map(players.size(), players, this, n);
         currentPane.setCenter(map);
+        left = new LeftSide(players, this);
+        currentPane.setLeft(left);
         right = new RightSide(this);
         currentPane.setRight(right);
         down = new DownSide(map.getHandle_TurningGame(), this);
@@ -64,5 +66,8 @@ public class DrawBoard {
 
     public int getN() {
         return n;
+    }
+    public ArrayList<Player> getPlayers(){
+        return players;
     }
 }

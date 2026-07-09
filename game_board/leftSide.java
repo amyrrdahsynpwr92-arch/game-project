@@ -17,18 +17,25 @@ import javafx.geometry.Insets;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
 import javafx.application.Platform;
+import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.Map;
+
+import card.ResourceCard;
+import cards.*;
+
 import java.util.HashMap;
 import util.Player;
-import card.*;
 
 public class LeftSide extends VBox {
     private ArrayList<Player> players;
     private Player player;
     private BorderPane currentPane;
     private DrawBoard board;
+    int playerWon = -1;
     public LeftSide(ArrayList<Player> players, DrawBoard board){
         this.players = players;
         this.board = board;
@@ -37,14 +44,13 @@ public class LeftSide extends VBox {
         drawPlayersScore();
         drawMyCards(players.get(0));
     }
-    public void drawPlayersScore(){
+    public void drawPlayersScore() {
         if(board.getGameStoppage())return;
         VBox pane = new VBox(20);
         Text text = new Text("scores:");
         text.setFill(Color.WHITE);
         text.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
         pane.getChildren().add(text);
-        int playerWon = -1;
         for(Player player: players){
             Rectangle back = new Rectangle();
             back.setWidth(80);
@@ -53,6 +59,21 @@ public class LeftSide extends VBox {
             back.setArcHeight(13);
             back.setFill(player.getColor());
             Text score = new Text("player " + player.getPlayerNumber() + ": " + player.getScore());
+            if(board.getMap().getHandle_PreGame().isPreGame()){
+                if(player == board.getMap().getHandle_PreGame().getCurrentPlayer()){
+                    FillTransition ft = new FillTransition(Duration.millis(400), back, player.getColor(), Color.TRANSPARENT);
+                    ft.setAutoReverse(true);
+                    ft.setCycleCount(2);
+                    ft.play();
+                }
+            }else{
+                if(player == board.getMap().getHandle_TurningGame().getCurrentPlayer()){
+                    FillTransition ft = new FillTransition(Duration.millis(400), back, player.getColor(), Color.TRANSPARENT);
+                    ft.setAutoReverse(true);
+                    ft.setCycleCount(2);
+                    ft.play();
+                }
+            }
             if(player.getScore() >= 10 && playerWon == -1)playerWon = player.getPlayerNumber();
             score.setFill(Color.WHITE);
             score.setFont(Font.font("Roboto", FontWeight.NORMAL, 15));
@@ -65,7 +86,10 @@ public class LeftSide extends VBox {
         if(this.getChildren().size() > 0)this.getChildren().remove(0);
         this.getChildren().add(0, pane);
         if(playerWon != -1){
-            new WinReport(currentPane, playerWon);
+            try{
+                Thread.sleep(500);
+            }catch(InterruptedException ex){}
+            Platform.runLater(() -> new WinReport(currentPane, playerWon));
             board.setGameStoppage(true);
         }
     }

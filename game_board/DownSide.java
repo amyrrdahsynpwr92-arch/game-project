@@ -24,13 +24,22 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+
+import card.Capital;
+import card.Cloud;
+import card.Data;
+import card.Market;
+import card.Patent;
+import card.ResourceCard;
+import card.Talent;
+import cards.*;
 import graph.*;
 import javafx.scene.image.Image;
 import javafx.geometry.Bounds;
 import javafx.scene.image.ImageView;
 import javafx.animation.FadeTransition;
-import card.*;
 import util.*;
+import type.*;
 
 public class DownSide extends HBox {
     private Handle_TurningGame handle_TurningGame;
@@ -50,26 +59,13 @@ public class DownSide extends HBox {
     private Timeline writingAnimation;
     String status = "";
     TextField resourceTitle = new TextField();
-    int onTrade = -1;
-    int wantedCapitalCount = 0;
-    int wantedCloudCount = 0;
-    int wantedDataCount = 0;
-    int wantedPatentCount = 0;
-    int wantedTalentCount = 0;
-    int lostCapitalCount = 0;
-    int lostCloudCount = 0;
-    int lostDataCount = 0;
-    int lostPatentCount = 0;
-    int lostTalentCount = 0;
-    private ArrayList<Integer> wantedResources = new ArrayList<>();
-    private ArrayList<Integer> lostResources = new ArrayList<>();
+    Player onTrade = null;
     private ArrayList<Integer> onTaxResources = new ArrayList<>();
-    private Player fromRequest = null;
-    private Player onRequest = null;
     private int onTax = 0;
     private Rectangle auditorBack;
     private Text taxText = new Text("");
     private ArrayList<Integer> lastResourcesCount = new ArrayList<>();
+    private int onTrades;
 
     public DownSide(Handle_TurningGame handle_TurningGame, DrawBoard board){
         this.handle_TurningGame = handle_TurningGame;
@@ -83,6 +79,7 @@ public class DownSide extends HBox {
         drawAuditor();
     }
     public void drawBuyButton(){
+        if(board.getGameStoppage())return;
         Button btBuy = new Button("Buy");
         btBuy.prefWidthProperty().bind(widthProperty().divide(4));
         btBuy.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
@@ -93,6 +90,7 @@ public class DownSide extends HBox {
         this.getChildren().add(0, btBuy);
     }
     public void drawTradeButton(){
+        if(board.getGameStoppage())return;
         Button btTrade = new Button("Trade");
         btTrade.prefWidthProperty().bind(widthProperty().divide(4));
         btTrade.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
@@ -100,7 +98,7 @@ public class DownSide extends HBox {
         btTrade.setPrefHeight(60);
         btTrade.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         btTrade.setOnAction(e -> {
-            if(handle_TurningGame.getCurrentPlayer().getOnTradeRequest())
+            if(handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0)
                 tradeRequest();
             else 
                 trade();
@@ -108,6 +106,7 @@ public class DownSide extends HBox {
         this.getChildren().add(1, btTrade);
     }
     public void drawEndOfButton(){
+        if(board.getGameStoppage())return;
         Button btEnd = new Button("End of my turn");
         btEnd.prefWidthProperty().bind(widthProperty().divide(4));
         btEnd.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
@@ -176,7 +175,7 @@ public class DownSide extends HBox {
                             auditor.setOpacity(0.5);
                             Platform.runLater(() -> board.getTopSide().drawStatusPanel("the auditor is moved to correct place! go to Tax panel"));
                             taxText.setText("Tax");
-                            board.getTopSide().getUndoButton().addStage(sector, handle_TurningGame.getCurrentPlayer());
+                            board.getTopSide().getUndoAction().addStage(sector, handle_TurningGame.getCurrentPlayer());
                             auditorBack.setOnMouseClicked(event -> loseCards());
                         }else{
                             auditor.relocate(startX, startY);
@@ -195,14 +194,14 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     public void endOfTurn(){
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || onTrade == handle_TurningGame.getCurrentPlayer().getPlayerNumber()){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0){
             errorSound.stop();
             errorSound.play();
             return;
         }
+        if(handle_TurningGame.getCurrentPlayer().getPlayerNumber() == board.getPlayers().size())market.setPrices();
         handle_TurningGame.Notify();
         board.getRightSide().setDicesRolled(false);
-        market.setPrices();
         Platform.runLater(() -> {
             board.getTopSide().drawPlayerBox(handle_TurningGame.getCurrentPlayer().getPlayerNumber());
             board.getTopSide().drawStatusPanel("Player " + handle_TurningGame.getCurrentPlayer().getPlayerNumber() + "!  this is your turn. roll dices");
@@ -216,7 +215,7 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     private void buy(){
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || onTrade == handle_TurningGame.getCurrentPlayer().getPlayerNumber()){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0){
             errorSound.stop();
             errorSound.play();
             return;
@@ -256,23 +255,38 @@ public class DownSide extends HBox {
             Button btBuy = new Button("buy");
             switch(resource.getType()){
                 case Capital:
-                    price = market.getCards().get(0).getPrice();
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        price = market.getCards().get(0).getPrice() - 1;
+                    else
+                        price = market.getCards().get(0).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Cloud:
-                    price = market.getCards().get(1).getPrice();
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        price = market.getCards().get(1).getPrice() - 1;
+                    else
+                        price = market.getCards().get(1).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Data:
-                    price = market.getCards().get(2).getPrice();
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        price = market.getCards().get(2).getPrice() - 1;
+                    else
+                        price = market.getCards().get(2).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Patent:
-                    price = market.getCards().get(3).getPrice();
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        price = market.getCards().get(3).getPrice() - 1;
+                    else
+                        price = market.getCards().get(3).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Talent:
-                    price = market.getCards().get(4).getPrice();
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        price = market.getCards().get(4).getPrice() - 1;
+                    else
+                        price = market.getCards().get(4).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Null:
@@ -285,7 +299,9 @@ public class DownSide extends HBox {
                 if(motivateSign != null) {
                     motivateSign.stop();
                 }
+                textField.setText("|");
                 motivateSign = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                    if(textField.getText().length() == 0)textField.setText("|");
                     if(textField.getText().charAt(textField.getText().length() - 1) == '|'){
                         textField.setText(textField.getText().substring(0, textField.getText().length() - 1) + " ");
                     }
@@ -294,13 +310,14 @@ public class DownSide extends HBox {
                 }));
                 motivateSign.setCycleCount(Timeline.INDEFINITE);
                 writingAnimation = new Timeline(new KeyFrame(Duration.millis(30), event -> {
+                    if(textField.getText().length() == 0)textField.setText("|");
                     textField.setText(textField.getText().substring(0, textField.getText().length() - 1));
                     textField.appendText(Character.toString(status.charAt(index++)) + "|");
                 }));
                 textField.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
                 writingAnimation.setOnFinished(event -> motivateSign.play());
                 if(player.getCapitals() >= price){
-                    textField.setText("|");
+                    index = 0;
                     status = "Resource '" + resource.getType().name() + "' is bought by you!";
                     writingAnimation.setCycleCount(status.length());
                     writingAnimation.play();
@@ -309,6 +326,45 @@ public class DownSide extends HBox {
                     vBox.getChildren().remove(1);
                     vBox.getChildren().add(1, drawResources(resources, player));
                     market.IncreasePrice(resource.getType());
+                    switch(resource.getType()){
+                        case Capital:
+                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                                price = market.getCards().get(0).getPrice() - 1;
+                            else
+                                price = market.getCards().get(0).getPrice();
+                            title.setText(Integer.toString(price) + " Capitals");
+                            break;
+                        case Cloud:
+                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                                price = market.getCards().get(1).getPrice() - 1;
+                            else
+                                price = market.getCards().get(1).getPrice();
+                            title.setText(Integer.toString(price) + " Capitals");
+                            break;
+                        case Data:
+                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                                price = market.getCards().get(2).getPrice() - 1;
+                            else
+                                price = market.getCards().get(2).getPrice();
+                            title.setText(Integer.toString(price) + " Capitals");
+                            break;
+                        case Patent:
+                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                                price = market.getCards().get(3).getPrice() - 1;
+                            else
+                                price = market.getCards().get(3).getPrice();
+                            title.setText(Integer.toString(price) + " Capitals");
+                            break;
+                        case Talent:
+                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                                price = market.getCards().get(4).getPrice() - 1;
+                            else
+                                price = market.getCards().get(4).getPrice();
+                            title.setText(Integer.toString(price) + " Capitals");
+                            break;
+                        case Null:
+                            break;
+                    }
                     Platform.runLater(() -> board.getLeftSide().drawMyCards(handle_TurningGame.getCurrentPlayer()));
                 }else{
                     errorSound.stop();
@@ -356,22 +412,13 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     private void trade(){
+        if(board.getGameStoppage())return;
         if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor){
             errorSound.stop();
             errorSound.play();
             return;
         }
-        onTrade = -1;
-        wantedCapitalCount = 0;
-        wantedCloudCount = 0;
-        wantedDataCount = 0;
-        wantedPatentCount = 0;
-        wantedTalentCount = 0;
-        lostCapitalCount = 0;
-        lostCloudCount = 0;
-        lostDataCount = 0;
-        lostPatentCount = 0;
-        lostTalentCount = 0;
+        onTrade = null;
         Player player = handle_TurningGame.getCurrentPlayer();
         Button btOk = new Button("OK");
         Button btCancel = new Button("Cancel");
@@ -421,127 +468,8 @@ public class DownSide extends HBox {
         playerBackResources.setStyle("-fx-stroke: black; -fx-stroke-width: 3");
         VBox playerPaneForTextes = new VBox(15);
         playerPaneForTextes.setAlignment(Pos.CENTER);
-        for(ResourceCard resource: resources){
-            HBox myHBox = new HBox(5);
-            myHBox.setAlignment(Pos.CENTER);
-            TextField minus = new TextField("-");
-            minus.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
-            minus.setStyle("-fx-border-color: black; -fx-border-width: 3; -fx-text-fill: white;");
-            minus.setBackground(new Background(new BackgroundFill(resource.getColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-            minus.setMinWidth(35);
-            minus.setPrefWidth(35);
-            minus.setMaxWidth(35);
-            minus.setMinHeight(35);
-            minus.setPrefHeight(35);
-            minus.setMaxHeight(35);
-            minus.setEditable(false);
-            TextField resourceTitle = new TextField();
-            resourceTitle.setFont(Font.font("Roboto", FontWeight.BOLD, 14));
-            resourceTitle.setStyle("-fx-border-color: black; -fx-border-width: 3; -fx-text-fill: white;");
-            resourceTitle.setBackground(new Background(new BackgroundFill(resource.getColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-            resourceTitle.setMinWidth(85);
-            resourceTitle.setPrefWidth(85);
-            resourceTitle.setMaxWidth(85);
-            resourceTitle.setMinHeight(35);
-            resourceTitle.setPrefHeight(35);
-            resourceTitle.setMaxHeight(35);
-            resourceTitle.setEditable(false);
-            minus.setOnMouseClicked(e -> {
-                if(onTrade != -1){
-                        switch(resource.getType()){
-                            case Capital:
-                                if(player.getCapitalCount() - lostCapitalCount > 0){
-                                    lostCapitalCount++;
-                                    resourceTitle.setText("Capital: " + Long.toString(player.getCapitalCount() - lostCapitalCount));
-                                }
-                                break;
-                            case Cloud:
-                                if(player.getCloudCount() - lostCloudCount > 0){
-                                    lostCloudCount++;
-                                    resourceTitle.setText("Cloud: " + Long.toString(player.getCloudCount() - lostCloudCount));
-                                }
-                                break;
-                            case Data:
-                                if(player.getDataCount() - lostDataCount > 0){
-                                    lostDataCount++;
-                                    resourceTitle.setText("Data: " + Long.toString(player.getDataCount() - lostDataCount));
-                                }
-                                break;
-                            case Patent:
-                                if(player.getPatentCount() - lostPatentCount > 0){
-                                    lostPatentCount++;                                    
-                                    resourceTitle.setText("Patent: " + Long.toString(player.getPatentCount() - lostPatentCount));
-                                }
-                                break;
-                            case Talent:
-                                if(player.getTalentCount() - lostTalentCount > 0){
-                                    lostTalentCount++;
-                                    resourceTitle.setText("Talent: " + Long.toString(player.getTalentCount() - lostTalentCount));
-                                }
-                                break;
-                            case Null:
-                                break;
-                        }
-                        textField1.setText("Your resources you want to hand over: ");
-                        for(ResourceCard resourceCard: resources){
-                            switch(resourceCard.getType()){
-                                case Capital:
-                                    if(lostCapitalCount > 0 && player.getCapitalCount() - lostCapitalCount >= 0)
-                                        textField1.appendText("Capital: " + lostCapitalCount + ", ");
-                                    break;
-                                case Cloud:
-                                    if(lostCloudCount > 0 && player.getCloudCount() - lostCloudCount >= 0)
-                                        textField1.appendText("Cloud: " + lostCloudCount + ", ");
-                                    break;
-                                case Data:
-                                    if(lostDataCount > 0 && player.getDataCount() - lostDataCount >= 0)
-                                        textField1.appendText("Data: " + lostDataCount + ", ");
-                                    break;
-                                case Patent:
-                                    if(lostPatentCount > 0 && player.getPatentCount() - lostPatentCount >= 0)
-                                        textField1.appendText("Patent: " + lostPatentCount + ", ");
-                                    break;
-                                case Talent:
-                                    if(lostTalentCount > 0 && player.getTalentCount() - lostTalentCount >= 0)
-                                        textField1.appendText("Talent: " + lostTalentCount + ", ");
-                                    break;
-                                case Null:
-                                    break;
-                            }
-                        }
-                    }
-            });
-            myHBox.getChildren().addAll(minus, resourceTitle);
-            playerPaneForTextes.getChildren().add(myHBox);
-            switch(resource.getType()){
-                case Capital:
-                    resourceTitle.setText("Capital: " + player.getCapitalCount());
-                    break;
-                case Cloud:
-                    resourceTitle.setText("Cloud: " + player.getCloudCount());
-                    break;
-                case Data:
-                    resourceTitle.setText("Data: " + player.getDataCount());
-                    break;
-                case Patent:
-                    resourceTitle.setText("Patent: " + player.getPatentCount());
-                    break;
-                case Talent:
-                    resourceTitle.setText("Talent: " + player.getTalentCount());
-                    break;
-                case Null:
-                    break;
-            }
-        }
-        playerPane.getChildren().addAll(new StackPane(backPlayer, playerName), new StackPane(playerBackResources, playerPaneForTextes));
-        paneForPlayers.getChildren().add(playerPane);
         for(Player p: board.getMap().getPlayers()){
             if(p == player)continue;
-            wantedCapitalCount = 0;
-            wantedCloudCount = 0;
-            wantedDataCount = 0;
-            wantedPatentCount = 0;
-            wantedTalentCount = 0;
             VBox pane = new VBox(10);
             Text pName = new Text("Player " + p.getPlayerNumber());
             pName.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
@@ -552,14 +480,15 @@ public class DownSide extends HBox {
             backP.setFill(p.getColor()); 
             backP.setStyle("-fx-stroke: black; -fx-stroke-width: 3");
             backP.setOnMouseClicked(event -> {
-                if(onTrade == -1){
+                if(onTrade == null){
                     backP.setStyle("-fx-stroke: rgb(231, 112, 0); -fx-stroke-width: 4");
                     textField1.setText("your resources you want to hand over: ");
                     textField2.setText("player " + p.getPlayerNumber() + "'s resources you want to obtain: ");
-                    onTrade = p.getPlayerNumber();
+                    onTrade = p;
                     btOk.setDisable(false);
-                    fromRequest = player;
-                    onRequest = p;
+                    player.getMyTrades().put(p, new ArrayList<ResourceCard>());
+                    p.getMyTrades().put(player, new ArrayList<ResourceCard>());
+                    p.setOnTradeRequest(p.getOnTradeRequest() + 1);
                 }
             });
             VBox paneForTextes = new VBox(15);
@@ -595,36 +524,36 @@ public class DownSide extends HBox {
                 resourceTitle.setMaxHeight(35);
                 resourceTitle.setEditable(false);
                 plus.setOnMouseClicked(event -> {
-                    if(onTrade == p.getPlayerNumber()){
+                    if(onTrade == p){
                         switch(resource.getType()){
                             case Capital:
-                                if(p.getCapitalCount() - wantedCapitalCount > 0){
-                                    wantedCapitalCount++;
-                                    resourceTitle.setText("Capital: " + Long.toString(p.getCapitalCount() - wantedCapitalCount));
+                                if(p.getCapitalCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() > 0){
+                                    p.getMyTrades().get(player).add(new Capital());
+                                    resourceTitle.setText("Capital: " + Long.toString(p.getCapitalCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count()));
                                 }
                                 break;
                             case Cloud:
-                                if(p.getCloudCount() - wantedCloudCount > 0){
-                                    wantedCloudCount++;
-                                    resourceTitle.setText("Cloud: " + Long.toString(p.getCloudCount() - wantedCloudCount));
+                                if(p.getCloudCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() > 0){
+                                    p.getMyTrades().get(player).add(new Cloud());
+                                    resourceTitle.setText("Cloud: " + Long.toString(p.getCloudCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count()));
                                 }
                                 break;
                             case Data:
-                                if(p.getDataCount() - wantedDataCount > 0){
-                                    wantedDataCount++;
-                                    resourceTitle.setText("Data: " + Long.toString(p.getDataCount() - wantedDataCount));
+                                if(p.getDataCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() > 0){
+                                    p.getMyTrades().get(player).add(new Data());
+                                    resourceTitle.setText("Data: " + Long.toString(p.getDataCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count()));
                                 }
                                 break;
                             case Patent:
-                                if(p.getPatentCount() - wantedPatentCount > 0){
-                                    wantedPatentCount++;                                    
-                                    resourceTitle.setText("Patent: " + Long.toString(p.getPatentCount() - wantedPatentCount));
+                                if(p.getPatentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() > 0){
+                                    p.getMyTrades().get(player).add(new Patent());                                    
+                                    resourceTitle.setText("Patent: " + Long.toString(p.getPatentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count()));
                                 }
                                 break;
                             case Talent:
-                                if(p.getTalentCount() - wantedTalentCount > 0){
-                                    wantedTalentCount++;
-                                    resourceTitle.setText("Talent: " + Long.toString(p.getTalentCount() - wantedTalentCount));
+                                if(p.getTalentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() > 0){
+                                    p.getMyTrades().get(player).add(new Talent());
+                                    resourceTitle.setText("Talent: " + Long.toString(p.getTalentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count()));
                                 }
                                 break;
                             case Null:
@@ -634,24 +563,24 @@ public class DownSide extends HBox {
                         for(ResourceCard resourceCard: resources){
                             switch(resourceCard.getType()){
                                 case Capital:
-                                    if(wantedCapitalCount > 0 && p.getCapitalCount() - wantedCapitalCount >= 0)
-                                        textField2.appendText("Capital: " + wantedCapitalCount + ", ");
+                                    if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() > 0 && p.getCapitalCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() >= 0)
+                                        textField2.appendText("Capital: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() + ", ");
                                     break;
                                 case Cloud:
-                                    if(wantedCloudCount > 0 && p.getCloudCount() - wantedCloudCount >= 0)
-                                        textField2.appendText("Cloud: " + wantedCloudCount + ", ");
+                                    if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() > 0 && p.getCloudCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() >= 0)
+                                        textField2.appendText("Cloud: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() + ", ");
                                     break;
                                 case Data:
-                                    if(wantedDataCount > 0 && p.getDataCount() - wantedDataCount >= 0)
-                                        textField2.appendText("Data: " + wantedDataCount + ", ");
+                                    if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() > 0 && p.getDataCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() >= 0)
+                                        textField2.appendText("Data: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() + ", ");
                                     break;
                                 case Patent:
-                                    if(wantedPatentCount > 0 && p.getPatentCount() - wantedPatentCount >= 0)
-                                        textField2.appendText("Patent: " + wantedPatentCount + ", ");
+                                    if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() > 0 && p.getPatentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() >= 0)
+                                        textField2.appendText("Patent: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() + ", ");
                                     break;
                                 case Talent:
-                                    if(wantedTalentCount > 0 && p.getTalentCount() - wantedTalentCount >= 0)
-                                        textField2.appendText("Talent: " + wantedTalentCount + ", ");
+                                    if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() > 0 && p.getTalentCount() - p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() >= 0)
+                                        textField2.appendText("Talent: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() + ", ");
                                     break;
                                 case Null:
                                     break;
@@ -684,6 +613,120 @@ public class DownSide extends HBox {
             pane.getChildren().addAll(new StackPane(backP, pName), new StackPane(backResources, paneForTextes));
             paneForPlayers.getChildren().add(pane);
         }
+        for(ResourceCard resource: resources){
+            HBox myHBox = new HBox(5);
+            myHBox.setAlignment(Pos.CENTER);
+            TextField minus = new TextField("-");
+            minus.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
+            minus.setStyle("-fx-border-color: black; -fx-border-width: 3; -fx-text-fill: white;");
+            minus.setBackground(new Background(new BackgroundFill(resource.getColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+            minus.setMinWidth(35);
+            minus.setPrefWidth(35);
+            minus.setMaxWidth(35);
+            minus.setMinHeight(35);
+            minus.setPrefHeight(35);
+            minus.setMaxHeight(35);
+            minus.setEditable(false);
+            TextField resourceTitle = new TextField();
+            resourceTitle.setFont(Font.font("Roboto", FontWeight.BOLD, 14));
+            resourceTitle.setStyle("-fx-border-color: black; -fx-border-width: 3; -fx-text-fill: white;");
+            resourceTitle.setBackground(new Background(new BackgroundFill(resource.getColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+            resourceTitle.setMinWidth(85);
+            resourceTitle.setPrefWidth(85);
+            resourceTitle.setMaxWidth(85);
+            resourceTitle.setMinHeight(35);
+            resourceTitle.setPrefHeight(35);
+            resourceTitle.setMaxHeight(35);
+            resourceTitle.setEditable(false);
+            minus.setOnMouseClicked(e -> {
+                if(onTrade != null){
+                        switch(resource.getType()){
+                            case Capital:
+                                if(player.getCapitalCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Capital).count() > 0){
+                                    player.getMyTrades().get(onTrade).add(new Capital());
+                                    resourceTitle.setText("Capital: " + Long.toString(player.getCapitalCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Capital).count()));
+                                }
+                                break;
+                            case Cloud:
+                                if(player.getCloudCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Cloud).count() > 0){
+                                    player.getMyTrades().get(onTrade).add(new Cloud());
+                                    resourceTitle.setText("Cloud: " + Long.toString(player.getCloudCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Cloud).count()));
+                                }
+                                break;
+                            case Data:
+                                if(player.getDataCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Data).count() > 0){
+                                    player.getMyTrades().get(onTrade).add(new Data());
+                                    resourceTitle.setText("Data: " + Long.toString(player.getDataCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Data).count()));
+                                }
+                                break;
+                            case Patent:
+                                if(player.getPatentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Patent).count() > 0){
+                                    player.getMyTrades().get(onTrade).add(new Patent());                                   
+                                    resourceTitle.setText("Patent: " + Long.toString(player.getPatentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Patent).count()));
+                                }
+                                break;
+                            case Talent:
+                                if(player.getTalentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Talent).count() > 0){
+                                    player.getMyTrades().get(onTrade).add(new Talent());
+                                    resourceTitle.setText("Talent: " + Long.toString(player.getTalentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Talent).count()));
+                                }
+                                break;
+                            case Null:
+                                break;
+                        }
+                        textField1.setText("Your resources you want to hand over: ");
+                        for(ResourceCard resourceCard: resources){
+                            switch(resourceCard.getType()){
+                                case Capital:
+                                    if(player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Capital).count() > 0 && player.getCapitalCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Capital).count() >= 0)
+                                        textField1.appendText("Capital: " + player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Capital).count() + ", ");
+                                    break;
+                                case Cloud:
+                                    if(player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Cloud).count() > 0 && player.getCloudCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Cloud).count() >= 0)
+                                        textField1.appendText("Cloud: " + player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Cloud).count() + ", ");
+                                    break;
+                                case Data:
+                                    if(player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Data).count() > 0 && player.getDataCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Data).count() >= 0)
+                                        textField1.appendText("Data: " + player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Data).count() + ", ");
+                                    break;
+                                case Patent:
+                                    if(player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Patent).count() > 0 && player.getPatentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Patent).count() >= 0)
+                                        textField1.appendText("Patent: " + player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Patent).count() + ", ");
+                                    break;
+                                case Talent:
+                                    if(player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Talent).count() > 0 && player.getTalentCount() - player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Talent).count() >= 0)
+                                        textField1.appendText("Talent: " + player.getMyTrades().get(onTrade).stream().filter(r -> r instanceof Talent).count() + ", ");
+                                    break;
+                                case Null:
+                                    break;
+                            }
+                        }
+                    }
+            });
+            myHBox.getChildren().addAll(minus, resourceTitle);
+            playerPaneForTextes.getChildren().add(myHBox);
+            switch(resource.getType()){
+                case Capital:
+                    resourceTitle.setText("Capital: " + player.getCapitalCount());
+                    break;
+                case Cloud:
+                    resourceTitle.setText("Cloud: " + player.getCloudCount());
+                    break;
+                case Data:
+                    resourceTitle.setText("Data: " + player.getDataCount());
+                    break;
+                case Patent:
+                    resourceTitle.setText("Patent: " + player.getPatentCount());
+                    break;
+                case Talent:
+                    resourceTitle.setText("Talent: " + player.getTalentCount());
+                    break;
+                case Null:
+                    break;
+            }
+        }
+        playerPane.getChildren().addAll(new StackPane(backPlayer, playerName), new StackPane(playerBackResources, playerPaneForTextes));
+        paneForPlayers.getChildren().add(playerPane);
         HBox paneForButtons = new HBox(10);
         paneForButtons.setAlignment(Pos.CENTER);
         btOk.setPrefSize(100, 50);
@@ -701,17 +744,6 @@ public class DownSide extends HBox {
         Node oldRight = board.getCurrentPane().getRight();
         Node oldBottom = board.getCurrentPane().getBottom();
         btOk.setOnAction(e -> {
-            wantedResources.add(wantedCapitalCount);
-            wantedResources.add(wantedCloudCount);
-            wantedResources.add(wantedDataCount);
-            wantedResources.add(wantedPatentCount);
-            wantedResources.add(wantedTalentCount);
-            lostResources.add(lostCapitalCount);
-            lostResources.add(lostCloudCount);
-            lostResources.add(lostDataCount);
-            lostResources.add(lostPatentCount);
-            lostResources.add(lostTalentCount);
-            onRequest.setOnTradeRequest(true);
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.play();
@@ -729,8 +761,6 @@ public class DownSide extends HBox {
             });
         });
         btCancel.setOnAction(e -> {
-            fromRequest = null;
-            onRequest = null;
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.play();
@@ -752,16 +782,17 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     public void tradeRequest(){
+        if(board.getGameStoppage())return;
         if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor){
             errorSound.stop();
             errorSound.play();
             return;
         }
-        Player p = handle_TurningGame.getCurrentPlayer();
+        Player player = handle_TurningGame.getCurrentPlayer();
         FadeTransition fadeIn = new FadeTransition();
         FadeTransition fadeOut = new FadeTransition();
-        VBox vBox = new VBox(120);
-        vBox.setAlignment(Pos.CENTER);
+        VBox vBox = new VBox(60);
+        vBox.setAlignment(Pos.TOP_CENTER);
         fadeOut.setNode(board.getCurrentPane());
         fadeOut.setDuration(Duration.millis(1000));
         fadeOut.setFromValue(1.0);
@@ -776,202 +807,173 @@ public class DownSide extends HBox {
             board.getCurrentPane().setCenter(vBox);
             fadeIn.play();
         });
-        TextField textField1 = new TextField("Player " + Integer.toString(fromRequest.getPlayerNumber()) +"'s resources he wants to hand over: ");
-        TextField textField2 = new TextField("Your resources he wants you to hand over: ");
-        TextField textField3 = new TextField("Do you accept this trade?");
-        textField1.setEditable(false);
-        textField1.setAlignment(Pos.CENTER);
-        textField1.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
-        textField2.setEditable(false);
-        textField2.setAlignment(Pos.CENTER);
-        textField2.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
-        textField3.setEditable(false);
-        textField3.setAlignment(Pos.CENTER);
-        textField3.setFont(Font.font("Roboto", FontWeight.BOLD, 16));
-        Button btYes = new Button("Yes");
-        Button btNo = new Button("No");
-        btYes.setPrefSize(100, 40);
-        btYes.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
-        btNo.setPrefSize(100, 40);
-        btNo.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
-        if(lostResources.get(0) > 0)textField1.appendText("Capital: " + lostResources.get(0) + ", ");
-        if(lostResources.get(1) > 0)textField1.appendText("Cloud: " + lostResources.get(1) + ", ");
-        if(lostResources.get(2) > 0)textField1.appendText("Data: " + lostResources.get(2) + ", ");
-        if(lostResources.get(3) > 0)textField1.appendText("Patent: " + lostResources.get(3) + ", ");
-        if(lostResources.get(4) > 0)textField1.appendText("Talent: " + lostResources.get(4) + ", ");
-        if(wantedResources.get(0) > 0)textField2.appendText("Capital: " + wantedResources.get(0) + ", ");
-        if(wantedResources.get(1) > 0)textField2.appendText("Cloud: " + wantedResources.get(1) + ", ");
-        if(wantedResources.get(2) > 0)textField2.appendText("Data: " + wantedResources.get(2) + ", ");
-        if(wantedResources.get(3) > 0)textField2.appendText("Patent: " + wantedResources.get(3) + ", ");
-        if(wantedResources.get(4) > 0)textField2.appendText("Talent: " + wantedResources.get(4) + ", ");
-        wantedCapitalCount = 0;
-        wantedCloudCount = 0;
-        wantedDataCount = 0;
-        wantedPatentCount = 0;
-        wantedTalentCount = 0;
-        lostCapitalCount = 0;
-        lostCloudCount = 0;
-        lostDataCount = 0;
-        lostPatentCount = 0;
-        lostTalentCount = 0;
-        p.setOnTradeRequest(false);
-        textField3.setMinWidth(210);
-        textField3.setPrefWidth(210);
-        textField3.setMaxWidth(210);
-        textField3.setMinHeight(50);
-        textField3.setPrefHeight(50);
-        textField3.setMaxHeight(50);
-        HBox paneForButtons = new HBox(10);
-        paneForButtons.getChildren().addAll(btYes, btNo);
-        paneForButtons.setAlignment(Pos.CENTER);
-        VBox pane = new VBox(15);
-        pane.getChildren().addAll(textField3, paneForButtons);
-        pane.setAlignment(Pos.CENTER);
-        vBox.getChildren().addAll(textField1, textField2, pane);
-        Node oldLeft = board.getCurrentPane().getLeft();
-        Node oldCenter = board.getCurrentPane().getCenter();
-        Node oldTop = board.getCurrentPane().getTop();
-        Node oldRight = board.getCurrentPane().getRight();
-        Node oldBottom = board.getCurrentPane().getBottom();
-        btYes.setOnAction(e -> {
-            for(int i=0; i<wantedResources.get(0); i++){
-                fromRequest.getMyCards().add(new Capital());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Capital){
-                        p.getMyCards().remove(resource);
+        onTrades = player.getMyTrades().keySet().size(); 
+        for(Player p: player.getMyTrades().keySet()){
+            TextField request = new TextField("Player " + Integer.toString(p.getPlayerNumber()) +"'s resources he wants to hand over: ");
+            request.setEditable(false);
+            request.setAlignment(Pos.CENTER);
+            request.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
+            List<ResourceCard> resourceCards = Arrays.asList(new Capital(), new Cloud(), new Data(), new Patent(), new Talent());
+            for(ResourceCard card: resourceCards){
+                switch(card.getType()){
+                    case Capital:
+                        if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() > 0)
+                            request.appendText("Capital: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Capital).count() + ", ");
                         break;
-                    }
+                    case Cloud:
+                        if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() > 0)
+                            request.appendText("Cloud: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Cloud).count() + ", ");
+                        break;
+                    case Data:
+                        if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() > 0)
+                            request.appendText("Data: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Data).count() + ", ");
+                        break;
+                    case Patent:
+                        if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() > 0)
+                            request.appendText("Patent: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Patent).count() + ", ");
+                        break;
+                    case Talent:
+                        if(p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() > 0)
+                            request.appendText("Talent: " + p.getMyTrades().get(player).stream().filter(r -> r instanceof Talent).count() + ", ");
+                        break;
+                    case Null:
+                        break;
+
                 }
             }
-            for(int i=0; i<wantedResources.get(1); i++){
-                fromRequest.getMyCards().add(new Cloud());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Cloud){
-                        p.getMyCards().remove(resource);
+            TextField playerText = new TextField("Your resources he wants you to hand over: ");
+            playerText.setEditable(false);
+            playerText.setAlignment(Pos.CENTER);
+            playerText.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
+            for(ResourceCard card: resourceCards){
+                switch(card.getType()){
+                    case Capital:
+                        if(player.getMyTrades().get(p).stream().filter(r -> r instanceof Capital).count() > 0)
+                            playerText.appendText("Capital: " + player.getMyTrades().get(p).stream().filter(r -> r instanceof Capital).count() + ", ");
                         break;
-                    }
+                    case Cloud:
+                        if(player.getMyTrades().get(p).stream().filter(r -> r instanceof Cloud).count() > 0)
+                            playerText.appendText("Cloud: " + player.getMyTrades().get(p).stream().filter(r -> r instanceof Cloud).count() + ", ");
+                        break;
+                    case Data:
+                        if(player.getMyTrades().get(p).stream().filter(r -> r instanceof Data).count() > 0)
+                            playerText.appendText("Data: " + player.getMyTrades().get(p).stream().filter(r -> r instanceof Data).count() + ", ");
+                        break;
+                    case Patent:
+                        if(player.getMyTrades().get(p).stream().filter(r -> r instanceof Patent).count() > 0)
+                            playerText.appendText("Patent: " + player.getMyTrades().get(p).stream().filter(r -> r instanceof Patent).count() + ", ");
+                        break;
+                    case Talent:
+                        if(player.getMyTrades().get(p).stream().filter(r -> r instanceof Talent).count() > 0)
+                            playerText.appendText("Talent: " + player.getMyTrades().get(p).stream().filter(r -> r instanceof Talent).count() + ", ");
+                        break;
+                    case Null:
+                        break;
+
                 }
             }
-            for(int i=0; i<wantedResources.get(2); i++){
-                fromRequest.getMyCards().add(new Data());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Data){
-                        p.getMyCards().remove(resource);
-                        break;
+            TextField accept = new TextField("Do you accept this trade?");
+            accept.setEditable(false);
+            accept.setAlignment(Pos.CENTER);
+            accept.setFont(Font.font("Roboto", FontWeight.BOLD, 16));
+            Button btYes = new Button("Yes");
+            Button btNo = new Button("No");
+            btYes.setPrefSize(100, 40);
+            btYes.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
+            btNo.setPrefSize(100, 40);
+            btNo.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
+            accept.setMinWidth(210);
+            accept.setPrefWidth(210);
+            accept.setMaxWidth(210);
+            accept.setMinHeight(50);
+            accept.setPrefHeight(50);
+            accept.setMaxHeight(50);
+            HBox paneForButtons = new HBox(10);
+            paneForButtons.getChildren().addAll(btYes, btNo);
+            paneForButtons.setAlignment(Pos.CENTER);
+            VBox pane = new VBox(15);
+            pane.getChildren().addAll(accept, paneForButtons);
+            pane.setAlignment(Pos.CENTER);
+            vBox.getChildren().addAll(request, playerText, pane);
+            Node oldLeft = board.getCurrentPane().getLeft();
+            Node oldCenter = board.getCurrentPane().getCenter();
+            Node oldTop = board.getCurrentPane().getTop();
+            Node oldRight = board.getCurrentPane().getRight();
+            Node oldBottom = board.getCurrentPane().getBottom();
+            btYes.setOnAction(e -> {
+                player.setOnTradeRequest(player.getOnTradeRequest() - 1);
+                ArrayList<ResourceCard> cards = player.getMyTrades().get(p); // cards which p wants from player
+                for(ResourceCard resource: cards){
+                    for(ResourceCard resourceCard: player.getMyCards()){
+                        if(resourceCard.getClass() == resource.getClass()){
+                            player.getMyCards().remove(resourceCard);
+                            p.getMyCards().add(resourceCard);
+                            break;
+                        }
                     }
                 }
-            }
-            for(int i=0; i<wantedResources.get(3); i++){
-                fromRequest.getMyCards().add(new Patent());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Patent){
-                        p.getMyCards().remove(resource);
-                        break;
+                cards = p.getMyTrades().get(player); // cards which player wants from p
+                for(ResourceCard resource: cards){
+                    for(ResourceCard resourceCard: p.getMyCards()){
+                        if(resourceCard.getClass() == resource.getClass()){
+                            p.getMyCards().remove(resourceCard);
+                            player.getMyCards().add(resourceCard);
+                            break;
+                        }
                     }
                 }
-            }
-            for(int i=0; i<wantedResources.get(4); i++){
-                fromRequest.getMyCards().add(new Talent());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Talent){
-                        p.getMyCards().remove(resource);
-                        break;
-                    }
+                p.getMyTrades().remove(player);
+                player.getMyTrades().remove(p);
+                if(--onTrades == 0){
+                    fadeOut.setFromValue(1.0);
+                    fadeOut.setToValue(0.0);
+                    fadeOut.play();
+                    fadeOut.setOnFinished(event -> {
+                        board.getCurrentPane().setLeft(oldLeft);
+                        board.getCurrentPane().setCenter(oldCenter);
+                        board.getCurrentPane().setTop(oldTop);
+                        board.getCurrentPane().setRight(oldRight);
+                        board.getCurrentPane().setRight(oldRight);
+                        board.getCurrentPane().setBottom(oldBottom);
+                        fadeIn.setFromValue(0.0);
+                        fadeIn.setToValue(1.0);
+                        fadeIn.play();
+                        onTrade = null;
+                        Platform.runLater(() -> {
+                            board.getTopSide().drawStatusPanel("Player " + player.getPlayerNumber() + "! Do your turn");
+                            board.getLeftSide().drawMyCards(player);
+                            board.getCurrentPane().getChildren().add(auditor);
+                        });
+                    });
                 }
-            }
-            for(int i=0; i<lostResources.get(0); i++){
-                p.getMyCards().add(new Capital());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Capital){
-                        fromRequest.getMyCards().remove(resource);
-                        break;
-                    }
-                }
-            }
-            for(int i=0; i<lostResources.get(1); i++){
-                p.getMyCards().add(new Cloud());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Cloud){
-                        fromRequest.getMyCards().remove(resource);
-                        break;
-                    }
-                }
-            }
-            for(int i=0; i<lostResources.get(2); i++){
-                p.getMyCards().add(new Data());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Data){
-                        fromRequest.getMyCards().remove(resource);
-                        break;
-                    }
-                }
-            }
-            for(int i=0; i<lostResources.get(3); i++){
-                p.getMyCards().add(new Patent());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Patent){
-                        fromRequest.getMyCards().remove(resource);
-                        break;
-                    }
-                }
-            }
-            for(int i=0; i<lostResources.get(4); i++){
-                p.getMyCards().add(new Talent());
-                for(ResourceCard resource: p.getMyCards()){
-                    if(resource instanceof Talent){
-                        fromRequest.getMyCards().remove(resource);
-                        break;
-                    }
-                }
-            }
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-            fadeOut.play();
-            fadeOut.setOnFinished(event -> {
-                board.getCurrentPane().setLeft(oldLeft);
-                board.getCurrentPane().setCenter(oldCenter);
-                board.getCurrentPane().setTop(oldTop);
-                board.getCurrentPane().setRight(oldRight);
-                board.getCurrentPane().setRight(oldRight);
-                board.getCurrentPane().setBottom(oldBottom);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
-                lostResources.clear();
-                wantedResources.clear();
-                onRequest = null;
-                onTrade = -1;
-                Platform.runLater(() -> {
-                    board.getTopSide().drawStatusPanel("Player " + p.getPlayerNumber() + "! Do your turn");
-                    board.getLeftSide().drawMyCards(p);
-                    board.getCurrentPane().getChildren().add(auditor);
-                });
             });
-        });
-        btNo.setOnAction(e -> {
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-            fadeOut.play();
-            fadeOut.setOnFinished(event -> {
-                board.getCurrentPane().setLeft(oldLeft);
-                board.getCurrentPane().setCenter(oldCenter);
-                board.getCurrentPane().setTop(oldTop);
-                board.getCurrentPane().setRight(oldRight);
-                board.getCurrentPane().setRight(oldRight);
-                board.getCurrentPane().setBottom(oldBottom);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
-                lostResources.clear();
-                wantedResources.clear();
-                onRequest = null;
-                onTrade = -1;
-                Platform.runLater(() -> {
-                    board.getTopSide().drawStatusPanel("Player " + p.getPlayerNumber() + "! Do your turn");
-                    board.getCurrentPane().getChildren().add(auditor);
-                });
+            btNo.setOnAction(e -> {
+                p.getMyTrades().remove(player);
+                player.getMyTrades().remove(p);
+                player.setOnTradeRequest(player.getOnTradeRequest() - 1);
+                if(--onTrades == 0){
+                    fadeOut.setFromValue(1.0);
+                    fadeOut.setToValue(0.0);
+                    fadeOut.play();
+                    fadeOut.setOnFinished(event -> {
+                        board.getCurrentPane().setLeft(oldLeft);
+                        board.getCurrentPane().setCenter(oldCenter);
+                        board.getCurrentPane().setTop(oldTop);
+                        board.getCurrentPane().setRight(oldRight);
+                        board.getCurrentPane().setRight(oldRight);
+                        board.getCurrentPane().setBottom(oldBottom);
+                        fadeIn.setFromValue(0.0);
+                        fadeIn.setToValue(1.0);
+                        fadeIn.play();
+                        onTrade = null;
+                        Platform.runLater(() -> {
+                            board.getTopSide().drawStatusPanel("Player " + player.getPlayerNumber() + "! Do your turn");
+                            board.getCurrentPane().getChildren().add(auditor);
+                        });
+                    });
+                }
             });
-        });
+        }
     }
     // -------------------------------------------------------------
     // -------------------------------------------------------------
@@ -1031,6 +1033,20 @@ public class DownSide extends HBox {
         });
         auditorBack.setOnMouseClicked(e -> {});
         auditor.setOpacity(1.0);
+    }
+    // -------------------------------------------------------------
+    // -------------------------------------------------------------
+    // -------------------------------------------------------------
+    public void RePlaceAuditor(Sector sector){
+        Bounds imageBounds = auditor.getBoundsInParent();
+        Bounds sectorBounds = sector.localToScene(sector.getBoundsInLocal());
+        Point2D p = board.getCurrentPane().sceneToLocal(sectorBounds.getMinX() + sectorBounds.getWidth()/2, sectorBounds.getMinY() + sectorBounds.getHeight()/2);
+        auditor.relocate(p.getX() - imageBounds.getWidth()/2, p.getY() - imageBounds.getHeight()/2);
+        auditor.setOpacity(0.5);
+        Platform.runLater(() -> board.getTopSide().drawStatusPanel("the auditor is moved to correct place! go to Tax panel"));
+        taxText.setText("Tax");
+        board.getTopSide().getUndoAction().addStage(sector, handle_TurningGame.getCurrentPlayer());
+        auditorBack.setOnMouseClicked(event -> loseCards());
     }
     // -------------------------------------------------------------
     // -------------------------------------------------------------
@@ -1263,7 +1279,7 @@ public class DownSide extends HBox {
                 moveAuditor = false;
                 onTax = 0;
                 taxText.setText("");                
-                if(handle_TurningGame.getCurrentPlayer().getOnTradeRequest())
+                if(handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0)
                     Platform.runLater(() -> board.getTopSide().drawStatusPanel("Player " + handle_TurningGame.getCurrentPlayer().getPlayerNumber() + "! you have a Trade request. check trade panel"));
                 else 
                     Platform.runLater(() -> board.getTopSide().drawStatusPanel("Player " + handle_TurningGame.getCurrentPlayer().getPlayerNumber() + "! Do your turn"));
@@ -1285,7 +1301,7 @@ public class DownSide extends HBox {
             board.getTopSide().drawStatusPanel("sum equals to 7. move auditor piece to any possible sector");
         });
     }
-    public int getOnTrade(){
+    public Player getOnTrade(){
         return onTrade;
     }
     public ImageView getAuditor(){

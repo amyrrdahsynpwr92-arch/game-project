@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Random;
 
 import board_graph.*;
-import card.Capital;
-import card.Cloud;
-import card.Null;
-import card.Patent;
-import card.ResourceCard;
-import card.Talent;
+import cards.Capital;
+import cards.Cloud;
+import cards.Null;
+import cards.Patent;
+import cards.ResourceCard;
+import cards.Talent;
 import game_board.DrawBoard;
 import graph.Edge;
 import graph.Node;
@@ -22,7 +22,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import set_undo_and_redo.DrawUndoButton;
+import set_undo_and_redo.UndoAction;
 import undo_and_redo.*;
 import util.*;
 
@@ -34,7 +34,7 @@ public class OldMap {
     private DoubleProperty hGap = new SimpleDoubleProperty(50);
     private DoubleProperty vGap = new SimpleDoubleProperty(50);
     private DrawOldBoard board;
-    private DrawUndoButton undoButton; 
+    private UndoAction undoButton; 
     private SaveStages stages;
     private int n;
     public OldMap(DrawOldBoard board, int n, ArrayList<Node> nodes, ArrayList<Edge> edges, ArrayList<Sector> sectors){

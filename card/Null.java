@@ -1,5 +1,6 @@
 package card;
 
+import cards.ResourceCard;
 import javafx.scene.image.Image;
 import type.ProductionResources;
 

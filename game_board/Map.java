@@ -3,6 +3,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Random;
+
+import card.Capital;
+import card.Cloud;
+import card.Data;
+import card.Null;
+import card.Patent;
+import card.ResourceCard;
+import card.Talent;
+import cards.*;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
@@ -16,15 +25,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import game_board.DrawBoard;
-import set_undo_and_redo.DrawUndoButton;
+import set_undo_and_redo.UndoAction;
 import javafx.scene.text.Font;
 import util.Handle_PreGame;
 import util.Handle_TurningGame;
 import util.Player;
 import util.Sector;
-import card.*;
-import graph.Edge;
-import graph.Node;
+import graph.*;
 import javafx.scene.shape.Rectangle;
 
 public class Map extends Pane{
@@ -39,10 +46,12 @@ public class Map extends Pane{
     private ArrayList<Edge> edges = new ArrayList<>();
     private ArrayList<Player> players = new ArrayList<>();
     private DrawBoard board;
-    private DrawUndoButton undoButton;
+    private UndoAction undoAction;
     private int n;
+    private LongestPath longestPath;
+
     public Map(int numberOfPlayers, ArrayList<Player> players, DrawBoard board, int n){
-        undoButton = board.getTopSide().getUndoButton();
+        undoAction = board.getTopSide().getUndoAction();
         this.n = n;
         this.numberOfPlayers = numberOfPlayers;
         this.players = players;
@@ -50,7 +59,6 @@ public class Map extends Pane{
         handle_preGame = new Handle_PreGame(players, handle_TurningGame);
         nodes = new Node[n+1][n+1];
         this.board = board;
-        undoButton = board.getTopSide().getUndoButton();
         drawGraph();
     }
     public void drawGraph(){
@@ -78,10 +86,6 @@ public class Map extends Pane{
             case 10: 
                 hGap.bind(widthProperty().divide(12.2));
                 vGap.bind(heightProperty().divide(12.4));
-                break;     
-            case 15: 
-                hGap.bind(widthProperty().divide(17.9));
-                vGap.bind(heightProperty().divide(17.9));
                 break;    
         }
         background.fitWidthProperty().bind(widthProperty());
@@ -105,7 +109,7 @@ public class Map extends Pane{
         }
         for(int i=0; i<n+1; i++){
             for(int j=0; j<n+1; j++){
-                Node node = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, undoButton);
+                Node node = new Node(j, i, handle_preGame, handle_TurningGame, sectors, board, undoAction);
                 nodes[i][j] = node;
                 node.layoutXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
                 node.layoutYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i)));
@@ -114,7 +118,7 @@ public class Map extends Pane{
         }
         for(int i=0; i<n+1; i++){
             for(int j=0; j<n; j++){
-                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*n+j, board, undoButton);
+                Edge e = new Edge(nodes[i][j], nodes[i][j+1], handle_preGame, handle_TurningGame, i*n+j, board, undoAction);
                 this.getChildren().add(e);
                 edges.add(e);
                 e.startXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
@@ -125,7 +129,7 @@ public class Map extends Pane{
         }
         for(int j=0; j<n+1; j++){
             for(int i=0; i<n; i++){
-                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*n+i, board, undoButton);
+                Edge e = new Edge(nodes[i][j], nodes[i+1][j], handle_preGame, handle_TurningGame, 30 + j*n+i, board, undoAction);
                 this.getChildren().add(e);
                 edges.add(e);
                 e.startXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
@@ -133,10 +137,8 @@ public class Map extends Pane{
                 e.endXProperty().bind(widthProperty().subtract(hGap.multiply(n)).divide(2).add(hGap.multiply(j)));
                 e.endYProperty().bind(heightProperty().subtract(vGap.multiply(n)).divide(2).add(vGap.multiply(i+1)));
             }   
-        }    
-        for(Edge e: edges){
-            e.setEdges(edges);
-        }
+        }   
+        longestPath = new LongestPath(edges);
         for(int i=0; i<n+1; i++){
             for(int j=0; j<n+1; j++){
                 nodes[i][j].setNodes(nodes);
@@ -188,8 +190,13 @@ public class Map extends Pane{
     public ArrayList<Player> getPlayers() {
         return players;
     }
-
+    public Handle_PreGame getHandle_PreGame() {
+        return handle_preGame;
+    }
     public Handle_TurningGame getHandle_TurningGame() {
         return handle_TurningGame;
+    }
+    public LongestPath getLongestPath(){
+        return longestPath;
     }
 }

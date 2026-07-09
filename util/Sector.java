@@ -2,6 +2,9 @@ package util;
 import type.SectorType;
 import type.ProductionResources;
 import java.util.Random;
+
+import card.ResourceCard;
+import cards.*;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
@@ -13,7 +16,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
-import card.*;
 
 public class Sector extends Pane{
     private Rectangle sectorShape;

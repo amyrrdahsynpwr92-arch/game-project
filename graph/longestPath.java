@@ -5,26 +5,24 @@ import java.util.LinkedList;
 
 public class LongestPath {
     private ArrayList<Edge> edges;
-    private Edge edge;
-    private Integer maxDistance;
-    public LongestPath(ArrayList<Edge> edges, Edge edge, Integer maxDistance){
+    private int maxDistance = 0;
+    public LongestPath(ArrayList<Edge> edges){
         this.edges = edges;
-        this.edge = edge;
-        this.maxDistance = maxDistance;
     }
     public ArrayList<Edge> setNeighbors(Edge e1){
         ArrayList<Edge> neighbors = new ArrayList<>();
         for(Edge e2: edges){
-            if((e1.getStart().equals(e2.getStart()) || e1.getEnd().equals(e2.getEnd())) && !(e1.getStart().equals(e2.getStart()) && e1.getEnd().equals(e2.getEnd())) && e1.getStroke() == e2.getStroke()){
+            if(e1 == e2)continue;
+            if((e1.getStart().equals(e2.getStart()) || e1.getEnd().equals(e2.getEnd()) || e1.getStart().equals(e2.getEnd()) || e1.getEnd().equals(e2.getStart())) && e1.getStroke() == e2.getStroke()){
                 neighbors.add(e2);
             }
         }
         return neighbors;
     }
-    public boolean bfs(){
+    public boolean bfs(Edge edge){
         boolean[] visited = new boolean[300];
         Queue<Edge> queue = new LinkedList<>();
-        int dis = 0;
+        int dis = 1;
         visited[edge.getEdgeNumber()] = true;
         queue.add(edge);
         while(!queue.isEmpty()){
@@ -43,5 +41,11 @@ public class LongestPath {
         }
         else 
             return false;
+    }
+    public void setMaxDistance(int maxDistance){
+        this.maxDistance = maxDistance;
+    }
+    public int getMaxDistance(){
+        return maxDistance;
     }
 }
