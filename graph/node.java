@@ -1,12 +1,12 @@
 package graph;
 import java.util.ArrayList;
 
-import card.Capital;
-import card.Cloud;
-import card.Data;
-import card.Null;
-import card.ResourceCard;
-import card.Talent;
+import cards.Capital;
+import cards.Cloud;
+import cards.Data;
+import cards.Null;
+import cards.ResourceCard;
+import cards.Talent;
 import cards.*;
 import company.*;
 import util.*;

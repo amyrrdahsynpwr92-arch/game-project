@@ -1,7 +1,7 @@
 package util;
 import java.util.ArrayList;
 
-import card.Capital;
+import cards.Capital;
 import cards.*;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;

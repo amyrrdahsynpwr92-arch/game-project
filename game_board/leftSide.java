@@ -24,7 +24,7 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.Map;
 
-import card.ResourceCard;
+import cards.ResourceCard;
 import cards.*;
 
 import java.util.HashMap;

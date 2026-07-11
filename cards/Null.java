@@ -1,4 +1,4 @@
-package card;
+package cards;
 
 import cards.ResourceCard;
 import javafx.scene.image.Image;

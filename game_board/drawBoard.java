@@ -21,7 +21,8 @@ public class DrawBoard {
         this.currentPane = currentPane;
         this.n = n;
         this.players = players;
-        top = new TopSide(currentPane, this);
+        top = 
+        new TopSide(currentPane, this);
         currentPane.setTop(top);
         map = new Map(players.size(), players, this, n);
         currentPane.setCenter(map);

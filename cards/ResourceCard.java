@@ -1,4 +1,4 @@
-package card;
+package cards;
 import javafx.scene.layout.Pane;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;

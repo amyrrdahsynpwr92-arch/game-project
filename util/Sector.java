@@ -3,7 +3,7 @@ import type.SectorType;
 import type.ProductionResources;
 import java.util.Random;
 
-import card.ResourceCard;
+import cards.ResourceCard;
 import cards.*;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;

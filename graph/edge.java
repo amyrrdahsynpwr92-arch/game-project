@@ -1,9 +1,9 @@
 package graph;
 import java.util.ArrayList;
 
-import card.Capital;
-import card.Patent;
-import card.ResourceCard;
+import cards.Capital;
+import cards.Patent;
+import cards.ResourceCard;
 import cards.*;
 import graph.*;
 import game_board.DrawBoard;

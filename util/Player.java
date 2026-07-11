@@ -4,12 +4,12 @@ import type.*;
 import java.util.ArrayList;
 import java.util.Map;
 
-import card.Capital;
-import card.Cloud;
-import card.Data;
-import card.Patent;
-import card.ResourceCard;
-import card.Talent;
+import cards.Capital;
+import cards.Cloud;
+import cards.Data;
+import cards.Patent;
+import cards.ResourceCard;
+import cards.Talent;
 import cards.*;
 
 import java.util.HashMap;
