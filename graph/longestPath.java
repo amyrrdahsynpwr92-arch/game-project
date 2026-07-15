@@ -20,6 +20,7 @@ public class LongestPath {
         return neighbors;
     }
     public boolean bfs(Edge edge){
+        boolean Increased = false;
         boolean[] visited = new boolean[300];
         Queue<Edge> queue = new LinkedList<>();
         int dis = 1;
@@ -27,11 +28,15 @@ public class LongestPath {
         queue.add(edge);
         while(!queue.isEmpty()){
             Edge currentEdge = queue.poll();
+            Increased = false;
             for(Edge e: setNeighbors(currentEdge)){
                 if(!visited[e.getEdgeNumber()]){
                     visited[e.getEdgeNumber()] = true;
                     queue.add(e);
-                    dis++;
+                    if(!Increased){
+                        dis++;
+                        Increased = true;
+                    }
                 }
             }
         }
