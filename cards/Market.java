@@ -1,19 +1,11 @@
 package cards;
 import java.util.List;
-
-import cards.Capital;
-import cards.Cloud;
-import cards.Data;
-import cards.Patent;
-import cards.ResourceCard;
-import cards.Talent;
-
+import java.io.Serializable;
 import java.util.Arrays;
-import java.util.ArrayList;
 import type.*;
 
 
-public class Market {
+public class Market implements Serializable {
     private List<ResourceCard> cards = Arrays.asList(new Capital(), new Cloud(), new Data(), new Patent(), new Talent());
     
     public void IncreasePrice(ProductionResources resourceType){

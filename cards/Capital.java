@@ -2,9 +2,6 @@ package cards;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-import org.w3c.dom.css.RGBColor;
-
-import cards.ResourceCard;
 import type.*;
 
 public class Capital extends ResourceCard {

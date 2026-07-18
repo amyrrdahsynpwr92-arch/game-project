@@ -1,17 +1,11 @@
 package graph;
 import java.util.ArrayList;
-
-import cards.Capital;
-import cards.Cloud;
-import cards.Data;
-import cards.Null;
-import cards.ResourceCard;
-import cards.Talent;
 import cards.*;
 import company.*;
 import util.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
 import javafx.scene.media.Media;
 import javafx.scene.shape.Circle;
 import type.PlayerRole;
@@ -42,7 +36,8 @@ public class Node extends Pane{
     private DrawBoard board;
     private UndoAction undoAction; 
     private int n;
-    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, UndoAction undoAction){
+
+    public Node(int row, int col, Handle_PreGame handle_preGame, Handle_TurningGame handle_TurningGame, ArrayList<Sector> sectors, DrawBoard board, UndoAction undoAction, boolean hasMVP, boolean hasUnicorn, Color color){
         this.handle_preGame = handle_preGame;
         this.handle_TurningGame = handle_TurningGame;
         this.row = row;
@@ -54,9 +49,23 @@ public class Node extends Pane{
         nodeShape.setCenterX(0);
         nodeShape.setCenterY(0);
         this.board = board;
-        this.getChildren().add(nodeShape);
+        this.hasMVP = hasMVP;
+        this.hasUnicorn = hasUnicorn;
+        if(this.hasMVP){
+            nodeMVP = new MVP();
+            nodeMVP.GetShape().setFill(color);
+            nodeMVP.setOnMouseClicked(e -> drawUnicorn());
+            this.getChildren().add(nodeMVP);
+        }
+        else if(this.hasUnicorn){
+            nodeUnicorn = new Unicorn();
+            nodeUnicorn.GetShape().setFill(color);
+            this.getChildren().add(nodeUnicorn);
+        }else{
+            this.getChildren().add(nodeShape);
+            nodeShape.setOnMouseClicked(e -> drawMVP());
+        }
         this.undoAction = undoAction;
-        nodeShape.setOnMouseClicked(e -> drawMVP());
     }
     public int getRow() {
         return row;
@@ -99,6 +108,7 @@ public class Node extends Pane{
                         if(!(sector.getResource() instanceof Null || sector.HasAuditor())){
                             cards.add(sector.getResource());
                             sector.getMvpPlayers().add(currentPlayer);
+                            Platform.runLater(() -> board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " recieved a '" + sector.getResource().getType().name() + "' resource from a sector."));
                         }
                 }
                 Platform.runLater(() -> {
@@ -206,6 +216,7 @@ public class Node extends Pane{
                     for(Sector sector: sectors){
                         if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                             if(!(sector.getResource() instanceof Null)){
+                                sector.getMvpPlayers().remove(currentPlayer);
                                 sector.getUnicornPlayers().add(currentPlayer);
                             }
                     }
@@ -235,6 +246,7 @@ public class Node extends Pane{
                     for(Sector sector: sectors){
                         if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                             if(!(sector.getResource() instanceof Null)){
+                                sector.getMvpPlayers().remove(currentPlayer);
                                 sector.getUnicornPlayers().add(currentPlayer);
                             }
                     }
@@ -262,6 +274,7 @@ public class Node extends Pane{
         player.setScore(player.getScore() - 1);
         ArrayList<ResourceCard> cards = player.getMyCards();
         if(handle_preGame.isPreGame()){
+            Platform.runLater(() -> board.getDownSide().addReports("Player " + player.getPlayerNumber() + " cancelled his action of putting MVP and his new score and resources are retracted."));
             for(Sector sector: sectors){
                 if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                     if(!(sector.getResource() instanceof Null)){
@@ -282,7 +295,10 @@ public class Node extends Pane{
                 cards.add(new Talent());
                 cards.add(new Cloud());
                 cards.add(new Data());
-                Platform.runLater(() -> board.getLeftSide().drawMyCards(player));
+                Platform.runLater(() ->{
+                    board.getLeftSide().drawMyCards(player);
+                    Platform.runLater(() -> board.getDownSide().addReports("Player " + player.getPlayerNumber() + " cancelled his action of putting MVP and his new score is retracted."));
+                });
             }).start();
         }
         this.hasMVP = false;
@@ -298,6 +314,7 @@ public class Node extends Pane{
         this.getChildren().add(nodeMVP);
         player.setScore(player.getScore() - 2);
         ArrayList<ResourceCard> cards = player.getMyCards();
+        Platform.runLater(() -> board.getDownSide().addReports("Player " + player.getPlayerNumber() + " cancelled his action of putting Unicorn and his new score is retracted."));
         for(Sector sector: sectors){
             if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
                 if(!(sector.getResource() instanceof Null)){
@@ -363,6 +380,12 @@ public class Node extends Pane{
 
     public MediaPlayer getErrorSound() {
         return errorSound;
+    }
+    public void setLinkedPartnerships(ArrayList<Edge> linkedPartnerships){
+        this.linkedPartnerships = linkedPartnerships;
+    }
+    public Unicorn getNodeUnicorn(){
+        return nodeUnicorn;
     }
 }
 

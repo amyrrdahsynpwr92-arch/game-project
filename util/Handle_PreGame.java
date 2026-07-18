@@ -3,17 +3,18 @@ import java.util.List;
 import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.Serializable;
 
-public class Handle_PreGame {
+public class Handle_PreGame implements Serializable {
     private boolean isPreGame = true;
-    private Color currentColor = null;
+    private transient Color currentColor = null;
     private int currentPlayer = 1;
-    private enum Mode{Increment, Decrement, Constant};
+    private enum Mode implements Serializable {Increment, Decrement, Constant};
     private Mode mode = Mode.Increment;
-    private enum Turn{Node, Partnership};
+    private enum Turn implements Serializable {Node, Partnership};
     private Turn turn = Turn.Node;
     private int numberOfPlayers;
-    private List<Color> colors = Arrays.asList(Color.RED, Color.BLUE, Color.PURPLE, Color.GREEN);
+    private transient List<Color> colors = Arrays.asList(Color.RED, Color.BLUE, Color.PURPLE, Color.GREEN);
     private Handle_TurningGame handle_TurningGame;
     private ArrayList<Player> players;
 
@@ -23,9 +24,13 @@ public class Handle_PreGame {
         this.handle_TurningGame = handle_TurningGame;
     }
     public void NotifyMVP() {
+        if(colors == null)
+            colors = Arrays.asList(Color.RED, Color.BLUE, Color.PURPLE, Color.GREEN);
         currentColor = colors.get(currentPlayer-1);
     }
     public void NotifyPartnership() {
+        if(colors == null)
+            colors = Arrays.asList(Color.RED, Color.BLUE, Color.PURPLE, Color.GREEN);
         currentColor = colors.get(currentPlayer-1);
         if(currentPlayer == numberOfPlayers && mode != Mode.Decrement)mode = Mode.Constant;
         if(mode == Mode.Increment){
@@ -61,6 +66,22 @@ public class Handle_PreGame {
     }
     public Color getCurrentColor() {
         return currentColor;
+    }
+    public void setCurrentColor() {
+        switch(currentPlayer){
+            case 1:
+                currentColor = Color.RED;
+                break;
+            case 2:
+                currentColor = Color.BLUE;
+                break;
+            case 3:
+                currentColor = Color.PURPLE;
+                break;
+            case 4:
+                currentColor = Color.GREEN;
+                break;
+        }
     }
     public Player getCurrentPlayer(){
         if(currentPlayer == 0)return players.get(0);

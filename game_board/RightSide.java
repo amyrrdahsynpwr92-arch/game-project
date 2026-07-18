@@ -14,7 +14,6 @@ import javafx.application.Platform;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
-
 import cards.Null;
 import util.*;
 
@@ -29,15 +28,21 @@ public class RightSide extends VBox {
     double offsetY;
     double startX;
     double startY;
+    private int num1 = -1;
+    private int num2 = -1;
+
     public RightSide(DrawBoard board){
         this.board = board;
         players = board.getMap().getPlayers();
         this.sectors = board.getMap().getSectors();
         this.setMaxWidth(100);
+        if(board.getLoadClass() != null){
+            num1 = board.getLoadClass().getNum1();
+            num2 = board.getLoadClass().getNum2();
+        }
         drawTotalCards();
         drawDices();
         drawSumOfDices();
-        // drawAuditor();
     }
     public void drawTotalCards(){
         Optional<Integer> totalCards = players.stream().map(p -> p.getMyCards().size()).reduce((a, b) -> a + b);
@@ -98,16 +103,23 @@ public class RightSide extends VBox {
         this.getChildren().add(1, pane1);
         if(this.getChildren().size() > 2)this.getChildren().remove(2);
         this.getChildren().add(2, pane2);
+        if(num1 != -1){
+            Text text = new Text(Integer.toString(num1));
+            text.setFont(Font.font("Roboto", FontWeight.BOLD, 23));
+            text.setFill(Color.WHITE);
+            pane1.getChildren().clear();
+            pane1.getChildren().add(text);
+        }
         pane1.setOnMouseClicked(e -> {
-            if(pane1.getChildren().size() == 2 && board.getMap().getHandle_TurningGame().isTurning_Game()){
+            if(pane1.getChildren().size() == 2 && board.getMap().getHandle_TurningGame().isTurning_Game() && !board.getGameStoppage()){
                 fadeOutForDice.setNode(dice1);
                 fadeOutForDice.play();
                 fadeOutForText.setNode(text1);
                 fadeOutForText.play();
                 fadeOutForDice.setOnFinished(event -> {
                     pane1.getChildren().clear();
-                    int num = new Random().nextInt(6) + 1;
-                    Text text = new Text(Integer.toString(num));
+                    num1 = new Random().nextInt(6) + 1;
+                    Text text = new Text(Integer.toString(num1));
                     text.setFont(Font.font("Roboto", FontWeight.BOLD, 23));
                     text.setFill(Color.WHITE);
                     pane1.getChildren().add(text);
@@ -116,36 +128,53 @@ public class RightSide extends VBox {
                 });
             }
         });
+        if(num2 != -1){
+            Text text = new Text(Integer.toString(num2));
+            text.setFont(Font.font("Roboto", FontWeight.BOLD, 23));
+            text.setFill(Color.WHITE);
+            pane2.getChildren().clear();
+            pane2.getChildren().add(text);
+            sum = Integer.toString(num1 + num2);
+            dicesRolled = true;
+            drawSumOfDices();
+        }
         pane2.setOnMouseClicked(e -> {
-            if(pane2.getChildren().size() == 2 && pane1.getChildren().size() == 1 && board.getMap().getHandle_TurningGame().isTurning_Game()){
+            if(pane2.getChildren().size() == 2 && pane1.getChildren().size() == 1 && board.getMap().getHandle_TurningGame().isTurning_Game() && !board.getGameStoppage()){
                 fadeOutForDice.setNode(dice2);
                 fadeOutForDice.play();
                 fadeOutForText.setNode(text2);
                 fadeOutForText.play();
                 fadeOutForDice.setOnFinished(event -> {
                     pane2.getChildren().clear();
-                    int num = new Random().nextInt(6) + 1;
-                    sum = Integer.toString(num + Integer.parseInt(((Text)pane1.getChildren().get(0)).getText()));
-                    Text text = new Text(Integer.toString(num));
+                    num2 = new Random().nextInt(6) + 1;
+                    sum = Integer.toString(num2 + Integer.parseInt(((Text)pane1.getChildren().get(0)).getText()));
+                    Text text = new Text(Integer.toString(num2));
                     text.setFont(Font.font("Roboto", FontWeight.BOLD, 23));
                     text.setFill(Color.WHITE);
                     pane2.getChildren().add(text);
                     dicesRolled = true;
                     for(Sector sector: sectors){
                         if(!(sector.getResource() instanceof Null) && sector.getNumber() == Integer.parseInt(sum)){
-                            sector.getMvpPlayers().stream().map(p -> p.getMyCards()).forEach(c -> c.add(sector.getResource()));
+                            sector.getMvpPlayers().stream().map(p -> p.getMyCards()).forEach(c -> {
+                                c.add(sector.getResource());
+                                Platform.runLater(() -> board.getDownSide().addReports("Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + " recieved a '" + sector.getResource().getType().name() + "' resource from a sector."));
+                            });
                             sector.getUnicornPlayers().stream().map(p -> p.getMyCards()).forEach(c -> {
                                 c.add(sector.getResource());
                                 c.add(sector.getResource());
+                                Platform.runLater(() -> board.getDownSide().addReports("Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + " recieved two '" + sector.getResource().getType().name() + "' resources from a sector."));
                             });
                         }
                     }
                     Platform.runLater(() -> {
                         board.getLeftSide().drawMyCards(board.getMap().getHandle_TurningGame().getCurrentPlayer());
+                        board.getDownSide().addReports("Dice 1 rolled into number " + ((Text)pane1.getChildren().get(0)).getText() + " and Dice 2 rolled into number " + ((Text)pane2.getChildren().get(0)).getText() + " and the sum of Dices is " + sum + ".");
                         if(Integer.parseInt(sum) == 7){
+                            board.getDownSide().setSectorNumber(-1);
                             board.getDownSide().setMoveAuditor(true);
                             board.getTopSide().drawStatusPanel("sum equals to 7. move auditor piece to any possible sector");
                             board.getDownSide().ReDrawAuditor();
+                            board.getDownSide().addReports("The Regulatory Crisis occured!");
                         }else{
                             if(board.getMap().getHandle_TurningGame().getCurrentPlayer().getOnTradeRequest() > 0)
                                 board.getTopSide().drawStatusPanel("Player " + board.getMap().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber() + "! you have a Trade request. check trade panel");
@@ -166,6 +195,7 @@ public class RightSide extends VBox {
         text.prefHeightProperty().bind(heightProperty().divide(6));
         text.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5; -fx-text-fill: white;");
         text.setAlignment(Pos.CENTER);
+        text.setEditable(false);
         if(this.getChildren().size() > 3)this.getChildren().remove(3);
         this.getChildren().add(3, text);
     }
@@ -179,5 +209,20 @@ public class RightSide extends VBox {
     }
     public void setSum(String sum){
         this.sum = sum;
+    }
+    public void setNum1(int num1){
+        this.num1 = num1;
+    }
+    public void setNum2(int num2){
+        this.num2 = num2;
+    }
+    public int getNum1(){
+        return num1;
+    }
+    public int getNum2(){
+        return num2;
+    }
+    public String getSum(){
+        return sum;
     }
 }

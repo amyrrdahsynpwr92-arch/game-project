@@ -1,5 +1,7 @@
 package type;
-public enum SectorType {
+import java.io.Serializable;
+
+public enum SectorType  implements Serializable {
     AI_Hub,
     Fintech_District,
     Cloud_Campus,

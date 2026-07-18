@@ -1,7 +1,5 @@
 package util;
 import java.util.ArrayList;
-
-import cards.Capital;
 import cards.*;
 import type.PlayerRole;
 import javafx.animation.FadeTransition;
@@ -23,6 +21,7 @@ import javafx.scene.image.Image;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import game_board.DrawBoard;
+import save_and_load.*;
 
 public class GameInitiallization{
     private BorderPane currentPane;
@@ -41,6 +40,7 @@ public class GameInitiallization{
     private Capital capital2 = new Capital();
     private int n;
     private ImageView backText = new ImageView(new Image(getClass().getResourceAsStream("/images/details/backText.png")));
+    private DrawBoard board;
 
     public int getNumberOfPlayers() {
         return numberOfPlayers;
@@ -85,7 +85,6 @@ public class GameInitiallization{
     class loadGame extends VBox{
         private FadeTransition fadeTransition = new FadeTransition(Duration.millis(2000), currentPane);
         private Text text = new Text(" play the previous game?");
-        // private Rectangle backText = new Rectangle();
         private StackPane paneForText = new StackPane();
         HBox paneForButtons = new HBox(15);
         private Button btYes = new Button("Yes");
@@ -93,9 +92,6 @@ public class GameInitiallization{
         public loadGame(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 30));
-            // backText.setFill(Color.RED);
-            // backText.setArcWidth(30);
-            // backText.setArcHeight(30);
             backText.setFitWidth(2000);
             backText.setFitHeight(140);
             backText.setPreserveRatio(true);
@@ -112,11 +108,18 @@ public class GameInitiallization{
             this.setAlignment(Pos.CENTER);
             this.setPadding(new Insets(40, 0, 40, 0));
             this.getChildren().addAll(paneForText, paneForButtons);
-            
             currentPane.setCenter(this);
             fadeTransition.play();
-            btYes.setOnAction(e -> {
+            btYes.setOnAction(e -> {         
                 clickSound.play();
+                fadeTransition.setFromValue(1.0);
+                fadeTransition.setToValue(0.0);
+                fadeTransition.play();
+                fadeTransition.setOnFinished(event -> {
+                    clickSound.stop();
+                    currentPane.getChildren().clear();
+                    new Load(currentPane, GameInitiallization.this);
+                });
             });
             btNo.setOnAction(e -> {
                 clickSound.play();
@@ -333,7 +336,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players, n);
+                        board = new DrawBoard(currentPane, players, n, null);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -355,7 +358,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players, n);
+                        board = new DrawBoard(currentPane, players, n, null);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -379,7 +382,7 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players, n);
+                        board = new DrawBoard(currentPane, players, n, null);
                         numberOfPlayers = players.size();
                     });
                     fadeTransition.play();
@@ -401,11 +404,17 @@ public class GameInitiallization{
                     fadeTransition.setOnFinished(event -> {
                         clickSound.stop();
                         currentPane.getChildren().clear();
-                        new DrawBoard(currentPane, players, n);
+                        board = new DrawBoard(currentPane, players, n, null);
                     });
                     fadeTransition.play();
                 }
             });
         }
+    }
+    public void setBoard(DrawBoard board){
+        this.board = board;
+    }
+    public DrawBoard getBoard(){
+        return board;
     }
 }

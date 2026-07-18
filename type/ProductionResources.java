@@ -1,5 +1,7 @@
 package type;
-public enum ProductionResources {
+import java.io.Serializable;
+
+public enum ProductionResources implements Serializable {
     Capital, 
     Talent,
     Cloud, 

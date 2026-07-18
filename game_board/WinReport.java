@@ -1,7 +1,10 @@
 package game_board;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
@@ -10,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.animation.ScaleTransition;
 
 public class WinReport {
@@ -39,10 +43,11 @@ public class WinReport {
         st.setToX(1);
         st.setToY(1);
         st.play();
-        currentPane.getTop().setOpacity(0.5);
-        currentPane.getBottom().setOpacity(0.5);
-        currentPane.getCenter().setOpacity(0.5);
-        currentPane.getRight().setOpacity(0.5);
-        currentPane.getLeft().setOpacity(0.5);
+        currentPane.setBackground(new Background(new BackgroundFill(Color.BLACK,CornerRadii.EMPTY,Insets.EMPTY)));
+        currentPane.getTop().setOpacity(0.4);
+        currentPane.getBottom().setOpacity(0.4);
+        currentPane.getCenter().setOpacity(0.4);
+        currentPane.getRight().setOpacity(0.4);
+        currentPane.getLeft().setOpacity(0.4);
     }
 }

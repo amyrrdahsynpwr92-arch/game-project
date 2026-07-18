@@ -3,7 +3,8 @@ import javafx.animation.FadeTransition;
 import javafx.scene.layout.BorderPane;
 import java.util.ArrayList;
 import javafx.util.Duration;
-import game_board.*;
+import javafx.application.Platform;
+import save_and_load.Load;
 import util.Player;
 
 public class DrawBoard {
@@ -17,12 +18,14 @@ public class DrawBoard {
     private boolean gameStoppage = false;
     private ArrayList<Player> players;
     private int n;
-    public DrawBoard(BorderPane currentPane, ArrayList<Player> players, int n){
+    private Load loadClass;
+
+    public DrawBoard(BorderPane currentPane, ArrayList<Player> players, int n, Load loadClass){
         this.currentPane = currentPane;
         this.n = n;
         this.players = players;
-        top = 
-        new TopSide(currentPane, this);
+        this.loadClass = loadClass;
+        top = new TopSide(currentPane, this);
         currentPane.setTop(top);
         map = new Map(players.size(), players, this, n);
         currentPane.setCenter(map);
@@ -39,6 +42,11 @@ public class DrawBoard {
         fadeTransition.setNode(currentPane);
         fadeTransition.setCycleCount(1);
         fadeTransition.play();
+        fadeTransition.setOnFinished(e -> {
+            if(loadClass != null && loadClass.getGameStoppage() != -1){
+                Platform.runLater(() -> new WinReport(currentPane, loadClass.getGameStoppage()));
+            }
+        });
     }
     public LeftSide getLeftSide(){
         return left;
@@ -70,5 +78,8 @@ public class DrawBoard {
     }
     public ArrayList<Player> getPlayers(){
         return players;
+    }
+    public Load getLoadClass(){
+        return loadClass;
     }
 }

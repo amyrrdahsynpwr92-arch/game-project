@@ -33,10 +33,13 @@ public class Sector extends Pane{
     private ArrayList<Player> unicornPlayers = new ArrayList<>();
     private boolean hasAuditor;
 
-    public Sector(ResourceCard resource, int row, int col){
+    public Sector(ResourceCard resource, int row, int col, int number){
         this.resource = resource;
         this.ResourceType = resource.getType();
-        this.number = new Random().nextInt(11) + 2;
+        if(number == -1)
+            this.number = new Random().nextInt(11) + 2;
+        else
+            this.number = number;
         SetSectorType();
         SetColor();
         setSectorName();
@@ -170,6 +173,12 @@ public class Sector extends Pane{
     }
     public ArrayList<Player> getUnicornPlayers() {
         return unicornPlayers;
+    }
+    public void setMvpPlayers(ArrayList<Player> mvpPlayers) {
+        this.mvpPlayers = mvpPlayers;
+    }
+    public void setUnicornPlayers(ArrayList<Player> unicornPlayers) {
+        this.unicornPlayers = unicornPlayers;
     }
     public int getNumber() {
         return number;

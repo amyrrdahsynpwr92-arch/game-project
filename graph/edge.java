@@ -1,11 +1,6 @@
 package graph;
 import java.util.ArrayList;
-
-import cards.Capital;
-import cards.Patent;
-import cards.ResourceCard;
 import cards.*;
-import graph.*;
 import game_board.DrawBoard;
 import util.*;
 import javafx.scene.media.MediaPlayer;
@@ -16,7 +11,6 @@ import javafx.application.Platform;
 
 public class Edge extends Line {
     private Line edgeShape;
-    private Line outLine;
     private boolean hasPartnership;
     private Node start;
     private Node end;
@@ -24,14 +18,13 @@ public class Edge extends Line {
     private Handle_PreGame handle_preGame;
     private Player currentPlayer;
     private int edgeNumber;
-    private Integer maxDistance = 0;
     private MediaPlayer errorSound;
     private Handle_TurningGame handle_TurningGame;
     private DrawBoard board;
     private UndoAction undoAction;
     private boolean giveScore = false;
 
-    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, UndoAction undoAction){
+    public Edge(Node start, Node end, Handle_PreGame handle_PreGame, Handle_TurningGame handle_TurningGame, int edgeNumber, DrawBoard board, UndoAction undoAction, boolean hasPartnership, Color color){
         this.handle_preGame = handle_PreGame;
         this.handle_TurningGame = handle_TurningGame;
         this.start = start;
@@ -42,11 +35,16 @@ public class Edge extends Line {
         this.setStroke(Color.WHITE);
         this.board = board;
         this.undoAction = undoAction;
-        this.setOnMouseClicked(e -> drawPartnership());
+        this.hasPartnership = hasPartnership;
+        if(this.hasPartnership){
+            this.setStroke(color);
+            this.setStrokeWidth(10);
+        }else{
+            this.setOnMouseClicked(e -> drawPartnership());
+        }
     }
     public void drawPartnership(){
         if(board.getGameStoppage() || board.getDownSide().getMoveAuditor() || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0)return;
-        System.out.println(this);
         Capital capital = null;
         Patent patent = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
@@ -85,6 +83,7 @@ public class Edge extends Line {
                     break;
                 }
             }
+            // System.out.println(validate());
             if(capital != null && patent != null && validate()){
                 this.setStroke(currentPlayer.getColor());
                 this.setStrokeWidth(10);
@@ -97,9 +96,13 @@ public class Edge extends Line {
                 if(board.getMap().getLongestPath().bfs(this)){
                     currentPlayer.setScore(currentPlayer.getScore() + 2);
                     this.giveScore = true;
-                    Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
+                    Platform.runLater(() -> {
+                        board.getLeftSide().drawPlayersScore();
+                        board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " is awarded 2 points for having the longest sequance of partnerships.");
+                    });
                 }
             }else{
+                // System.out.println("here");
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
             }
@@ -120,14 +123,6 @@ public class Edge extends Line {
             }
         }
         for(Edge edge: start.getLinkedPartnerships()){
-            if(edge.getStroke() == Color.RED)
-                System.out.println("RED");
-            else if(edge.getStroke() == Color.BLUE)
-                System.out.println("BLUE");
-            if(edge.getStroke() == Color.GREEN)
-                System.out.println("GREEN");
-            if(edge.getStroke() == Color.PURPLE)
-                System.out.println("PURPLE");
             if(edge.getStroke() == playerColor){
                 if(handle_TurningGame.isTurning_Game()){
                     start.addPartnership(this);
@@ -142,14 +137,6 @@ public class Edge extends Line {
             }
         }
         for(Edge edge: end.getLinkedPartnerships()){
-            if(edge.getStroke() == Color.RED)
-                System.out.println("RED");
-            else if(edge.getStroke() == Color.BLUE)
-                System.out.println("BLUE");
-            if(edge.getStroke() == Color.GREEN)
-                System.out.println("GREEN");
-            if(edge.getStroke() == Color.PURPLE)
-                System.out.println("PURPLE");
             if(edge.getStroke() == playerColor){
                 if(handle_TurningGame.isTurning_Game()){
                     start.addPartnership(this);
@@ -169,8 +156,10 @@ public class Edge extends Line {
         this.setStrokeWidth(6);
         this.setStroke(Color.WHITE);
         this.hasPartnership = false;
-        handle_preGame.setTurn(2);
-        handle_preGame.NotifyBack();
+        if(handle_preGame.isPreGame()){
+            handle_preGame.setTurn(2);
+            handle_preGame.NotifyBack();
+        }
         for(Edge edge: start.getLinkedPartnerships()){
             if(edge == this){
                 start.getLinkedPartnerships().remove(edge);
@@ -187,6 +176,9 @@ public class Edge extends Line {
             player.setScore(player.getScore() - 2);
             this.giveScore = false;
             board.getMap().getLongestPath().setMaxDistance(board.getMap().getLongestPath().getMaxDistance() - 1);
+            Platform.runLater(() -> board.getDownSide().addReports("Player " + player.getPlayerNumber() + " cancelled his action of putting Partnership and his new score is retracted."));
+        }else{
+            Platform.runLater(() -> board.getDownSide().addReports("Player " + player.getPlayerNumber() + " cancelled his action of putting Partnership."));
         }
         if(handle_TurningGame.isTurning_Game()){
             ArrayList<ResourceCard> cards = currentPlayer.getMyCards();
@@ -222,9 +214,5 @@ public class Edge extends Line {
     }
     public Handle_PreGame getHandle_preGame() {
         return handle_preGame;
-    }
-    @Override
-    public String toString(){
-        return "{" + Integer.toString(start.getRow()) + ", " + Integer.toString(start.getCol()) +"} and {" + Integer.toString(end.getRow()) + ", " + Integer.toString(end.getCol()) + "}";
     }
 }

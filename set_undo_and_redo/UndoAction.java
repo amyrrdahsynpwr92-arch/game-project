@@ -19,7 +19,7 @@ public class UndoAction {
         this.board = board;
     }
     public void loadPrevoiusStage(){
-        if(board.getGameStoppage())return;
+        if(board.getGameStoppage() || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1))return;
         if(numberOfMoves <= 0 || player == null || actions.size() == 0){
             errorSound.stop();
             errorSound.play();

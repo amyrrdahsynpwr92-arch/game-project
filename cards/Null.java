@@ -1,7 +1,4 @@
 package cards;
-
-import cards.ResourceCard;
-import javafx.scene.image.Image;
 import type.ProductionResources;
 
 public class Null extends ResourceCard{

@@ -19,15 +19,6 @@ import javafx.scene.text.Text;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
-
-import cards.Capital;
-import cards.Cloud;
-import cards.Data;
-import cards.Market;
-import cards.Patent;
-import cards.ResourceCard;
-import cards.Talent;
 import cards.*;
 import graph.*;
 import javafx.scene.image.Image;
@@ -52,6 +43,7 @@ public class TopSide extends HBox {
     int currentPlayer = 1;
     private DrawBoard board;
     private Market market = new Market();
+    private TextField statusBox = new TextField("|");
     public Market getMarket(){
         return market;
     }
@@ -63,8 +55,20 @@ public class TopSide extends HBox {
         undoAction = new UndoAction(board);
         redoAction = new RedoAction(board, undoAction);
         undoAction.setRedoAction(redoAction);
-        drawPlayerBox(1);
-        drawStatusPanel("player 1! please put a MVP");
+        if(board.getLoadClass() != null)
+            market = board.getLoadClass().getMarket();
+        if(board.getLoadClass() == null)
+            drawPlayerBox(1);
+        else{
+            if(board.getLoadClass().getHandle_PreGame().isPreGame())
+                drawPlayerBox(board.getLoadClass().getHandle_PreGame().getCurrentPlayer().getPlayerNumber());  
+            else
+                drawPlayerBox(board.getLoadClass().getHandle_TurningGame().getCurrentPlayer().getPlayerNumber()); 
+        } 
+        if(board.getLoadClass() == null)
+            drawStatusPanel("player 1! please put a MVP");
+        else
+            drawStatusPanel(board.getLoadClass().getStatusText());
         drawUndoAction();
         drawRedoAction();
         drawPricesButton();
@@ -92,7 +96,7 @@ public class TopSide extends HBox {
     }
     public void drawStatusPanel(String status){
         if(board.getGameStoppage())return;
-        TextField statusBox = new TextField("|");
+        statusBox.setText("|");
         statusBox.setPrefHeight(50);
         statusBox.setEditable(false);
         statusBox.setAlignment(Pos.CENTER);
@@ -169,7 +173,7 @@ public class TopSide extends HBox {
         btPrices.setOnAction(e -> drawPricesOfSources());
     }
     private void drawPricesOfSources(){
-        if(board.getGameStoppage())return;
+        if(board.getGameStoppage() || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1))return;
         Player player = board.getMap().getHandle_TurningGame().getCurrentPlayer();
         FadeTransition fadeIn = new FadeTransition();
         FadeTransition fadeOut = new FadeTransition();
@@ -268,5 +272,8 @@ public class TopSide extends HBox {
 
     public UndoAction getUndoAction() {
         return undoAction;
+    }
+    public TextField getStatusBox(){
+        return statusBox;
     }
 }

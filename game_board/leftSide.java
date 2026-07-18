@@ -5,8 +5,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import game_board.DrawBoard;
-import game_board.WinReport;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -17,16 +15,12 @@ import javafx.geometry.Insets;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.application.Platform;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.Map;
-
 import cards.ResourceCard;
-import cards.*;
-
 import java.util.HashMap;
 import util.Player;
 
@@ -74,7 +68,10 @@ public class LeftSide extends VBox {
                     ft.play();
                 }
             }
-            if(player.getScore() >= 10 && playerWon == -1)playerWon = player.getPlayerNumber();
+            if(player.getScore() >= 10 && playerWon == -1){
+                if(board.getLoadClass() == null || board.getLoadClass().getGameStoppage() == -1)
+                    playerWon = player.getPlayerNumber();
+            }
             score.setFill(Color.WHITE);
             score.setFont(Font.font("Roboto", FontWeight.NORMAL, 15));
             pane.getChildren().add(new StackPane(back, score));
@@ -88,7 +85,9 @@ public class LeftSide extends VBox {
         if(playerWon != -1){
             try{
                 Thread.sleep(500);
-            }catch(InterruptedException ex){}
+            }catch(InterruptedException ex){
+                ex.printStackTrace();
+            }
             Platform.runLater(() -> new WinReport(currentPane, playerWon));
             board.setGameStoppage(true);
         }
@@ -168,5 +167,8 @@ public class LeftSide extends VBox {
         pane.setPrefWidth(100);
         if(this.getChildren().size() > 1)this.getChildren().remove(1);
         this.getChildren().add(1, pane);
+    }
+    public int getPlayerWon(){
+        return playerWon;
     }
 }

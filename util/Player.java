@@ -1,25 +1,17 @@
 package util;
 import type.*;
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
-
-import cards.Capital;
-import cards.Cloud;
-import cards.Data;
-import cards.Patent;
-import cards.ResourceCard;
-import cards.Talent;
 import cards.*;
-
 import java.util.HashMap;
 import javafx.scene.paint.Color;
 
-public class Player {
+public class Player implements Serializable {
     private int score = -1;
     private int PlayerNumber;
     private PlayerRole Role;
-    private Color color;
+    private transient Color color;
     private ArrayList<ResourceCard> myCards = new ArrayList<ResourceCard>();
     private int onTradeRequest = 0;
     private boolean onTax = false;

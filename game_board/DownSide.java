@@ -2,11 +2,11 @@ package game_board;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.Node;
@@ -15,25 +15,13 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.util.Duration;
-import game_board.DrawBoard;
-import set_undo_and_redo.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
-
-import cards.Capital;
-import cards.Cloud;
-import cards.Data;
-import cards.Market;
-import cards.Patent;
-import cards.ResourceCard;
-import cards.Talent;
 import cards.*;
-import graph.*;
 import javafx.scene.image.Image;
 import javafx.geometry.Bounds;
 import javafx.scene.image.ImageView;
@@ -66,6 +54,8 @@ public class DownSide extends HBox {
     private Text taxText = new Text("");
     private ArrayList<Integer> lastResourcesCount = new ArrayList<>();
     private int onTrades;
+    private TextArea reports = new TextArea();
+    private int sectorNumber = -1;
 
     public DownSide(Handle_TurningGame handle_TurningGame, DrawBoard board){
         this.handle_TurningGame = handle_TurningGame;
@@ -73,15 +63,26 @@ public class DownSide extends HBox {
         market = board.getTopSide().getMarket();
         this.sectors = board.getMap().getSectors();
         errorSound = board.getMap().getNodes()[0][0].getErrorSound();
+        reports.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
+        reports.setStyle("-fx-border: 4; -fx-border-color: blue");
+        reports.setPrefSize(900, 600);
+        reports.setEditable(false);
+        if(board.getLoadClass() != null && board.getLoadClass().getSectorNumber() != -1)
+            sectorNumber = board.getLoadClass().getSectorNumber();
+        if(board.getLoadClass() != null){
+            reports.setText(board.getLoadClass().getReportsText());
+            moveAuditor = board.getLoadClass().getMoveAuditor();
+        }
         drawBuyButton();
         drawTradeButton();
         drawEndOfButton();
+        drawReportPanel();
         drawAuditor();
     }
     public void drawBuyButton(){
         if(board.getGameStoppage())return;
         Button btBuy = new Button("Buy");
-        btBuy.prefWidthProperty().bind(widthProperty().divide(4));
+        btBuy.prefWidthProperty().bind(widthProperty().divide(5));
         btBuy.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
         btBuy.setTextFill(Color.WHITE);
         btBuy.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
@@ -92,7 +93,7 @@ public class DownSide extends HBox {
     public void drawTradeButton(){
         if(board.getGameStoppage())return;
         Button btTrade = new Button("Trade");
-        btTrade.prefWidthProperty().bind(widthProperty().divide(4));
+        btTrade.prefWidthProperty().bind(widthProperty().divide(5));
         btTrade.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
         btTrade.setTextFill(Color.WHITE);
         btTrade.setPrefHeight(60);
@@ -108,13 +109,24 @@ public class DownSide extends HBox {
     public void drawEndOfButton(){
         if(board.getGameStoppage())return;
         Button btEnd = new Button("End of my turn");
-        btEnd.prefWidthProperty().bind(widthProperty().divide(4));
+        btEnd.prefWidthProperty().bind(widthProperty().divide(5));
         btEnd.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
         btEnd.setTextFill(Color.WHITE);
         btEnd.setPrefHeight(60);
         btEnd.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         btEnd.setOnAction(e -> endOfTurn());
         this.getChildren().add(2, btEnd);
+    }
+    public void drawReportPanel(){
+        if(board.getGameStoppage())return;
+        Button btReport = new Button("Report Panel");
+        btReport.prefWidthProperty().bind(widthProperty().divide(5));
+        btReport.setStyle("-fx-background-color: rgba(20, 20, 20); -fx-border-color: turquoise; -fx-border-width: 5;");
+        btReport.setTextFill(Color.WHITE);
+        btReport.setPrefHeight(60);
+        btReport.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
+        btReport.setOnAction(e -> report());
+        this.getChildren().add(3, btReport);
     }
     public void drawAuditor(){
         auditorBack = new Rectangle();
@@ -126,15 +138,22 @@ public class DownSide extends HBox {
         auditorBack.setFill(Color.rgb(20, 20, 20));
         auditorBack.setStroke(Color.TURQUOISE);
         auditorBack.setStrokeWidth(5);  
-        auditorBack.widthProperty().bind(widthProperty().divide(4));      
+        auditorBack.widthProperty().bind(widthProperty().divide(5));      
         auditorBack.setHeight(55);
         taxText.setFill(Color.WHITE);
         taxText.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         Bounds imageBounds = auditor.getBoundsInParent();
         Platform.runLater(() -> {
-            Bounds b = auditorBack.localToScene(auditorBack.getBoundsInLocal());
-            Point2D p = board.getCurrentPane().sceneToLocal(b.getMinX() + b.getWidth()/2, b.getMinY() + b.getHeight() / 2);
-            auditor.relocate(p.getX() - auditor.getFitWidth() / 2, p.getY() - auditor.getFitHeight() / 2);
+            if(sectorNumber != -1){
+                RePlaceAuditor(sectors.get(sectorNumber));
+
+            }else if(board.getRightSide().getSum().equals("7")){
+                ReDrawAuditor();
+            }else{
+                Bounds b = auditorBack.localToScene(auditorBack.getBoundsInLocal());
+                Point2D p = board.getCurrentPane().sceneToLocal(b.getMinX() + b.getWidth()/2, b.getMinY() + b.getHeight() / 2);
+                auditor.relocate(p.getX() - auditor.getFitWidth() / 2, p.getY() - auditor.getFitHeight() / 2);
+            }
         });
         board.getCurrentPane().widthProperty().addListener(ov -> {
             Platform.runLater(() -> {
@@ -164,8 +183,8 @@ public class DownSide extends HBox {
             }
         });
         auditor.setOnMouseReleased(e -> {
-            if(auditor.getOpacity() == 1.0){
-                Bounds auditorBounds = auditor.localToScene(auditor.getBoundsInLocal());
+            Bounds auditorBounds = auditor.localToScene(auditor.getBoundsInLocal());
+            if(sectorNumber == -1){
                 for (Sector sector: sectors) {
                     Bounds sectorBounds = sector.localToScene(sector.getBoundsInLocal());
                     if (auditorBounds.intersects(sectorBounds)) {
@@ -176,6 +195,7 @@ public class DownSide extends HBox {
                             Platform.runLater(() -> board.getTopSide().drawStatusPanel("the auditor is moved to correct place! go to Tax panel"));
                             taxText.setText("Tax");
                             board.getTopSide().getUndoAction().addStage(sector, handle_TurningGame.getCurrentPlayer());
+                            sectorNumber = sectors.indexOf(sector);
                             auditorBack.setOnMouseClicked(event -> loseCards());
                         }else{
                             auditor.relocate(startX, startY);
@@ -187,14 +207,14 @@ public class DownSide extends HBox {
                 }
             }
         });
-        if(this.getChildren().size() > 3)this.getChildren().remove(3);
-        this.getChildren().add(3, new StackPane(auditorBack, taxText));
+        if(this.getChildren().size() > 4)this.getChildren().remove(4);
+        this.getChildren().add(4, new StackPane(auditorBack, taxText));
     }
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     public void endOfTurn(){
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0 || board.getGameStoppage() || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1)){
             errorSound.stop();
             errorSound.play();
             return;
@@ -205,6 +225,8 @@ public class DownSide extends HBox {
         Platform.runLater(() -> {
             board.getTopSide().drawPlayerBox(handle_TurningGame.getCurrentPlayer().getPlayerNumber());
             board.getTopSide().drawStatusPanel("Player " + handle_TurningGame.getCurrentPlayer().getPlayerNumber() + "!  this is your turn. roll dices");
+            board.getRightSide().setNum1(-1);
+            board.getRightSide().setNum2(-1);
             board.getRightSide().drawDices();
             board.getRightSide().setSum("");
             board.getRightSide().drawSumOfDices();
@@ -215,7 +237,7 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     private void buy(){
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0 || board.getGameStoppage() || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1)){
             errorSound.stop();
             errorSound.play();
             return;
@@ -319,6 +341,7 @@ public class DownSide extends HBox {
                 if(player.getCapitals() >= price){
                     index = 0;
                     status = "Resource '" + resource.getType().name() + "' is bought by you!";
+                    Platform.runLater(() -> addReports("Player " + player.getPlayerNumber() + " bought a '" + resource.getType().name() + "' resource."));
                     writingAnimation.setCycleCount(status.length());
                     writingAnimation.play();
                     player.deleteCapitals(price);
@@ -413,7 +436,7 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     private void trade(){
         if(board.getGameStoppage())return;
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1)){
             errorSound.stop();
             errorSound.play();
             return;
@@ -744,6 +767,7 @@ public class DownSide extends HBox {
         Node oldRight = board.getCurrentPane().getRight();
         Node oldBottom = board.getCurrentPane().getBottom();
         btOk.setOnAction(e -> {
+            Platform.runLater(() -> addReports("Player " + player.getPlayerNumber() + " sended a trade request to player " + onTrade.getPlayerNumber() + "."));
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.play();
@@ -783,7 +807,7 @@ public class DownSide extends HBox {
     // -------------------------------------------------------------
     public void tradeRequest(){
         if(board.getGameStoppage())return;
-        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor){
+        if(!handle_TurningGame.isTurning_Game() || !board.getRightSide().getDicesRolled() || moveAuditor || (board.getLoadClass() != null && board.getLoadClass().getGameStoppage() != -1)){
             errorSound.stop();
             errorSound.play();
             return;
@@ -901,6 +925,7 @@ public class DownSide extends HBox {
             Node oldRight = board.getCurrentPane().getRight();
             Node oldBottom = board.getCurrentPane().getBottom();
             btYes.setOnAction(e -> {
+                Platform.runLater(() -> addReports("Player " + player.getPlayerNumber() + " accepted player " + p.getPlayerNumber() + "'s trade request."));
                 player.setOnTradeRequest(player.getOnTradeRequest() - 1);
                 ArrayList<ResourceCard> cards = player.getMyTrades().get(p); // cards which p wants from player
                 for(ResourceCard resource: cards){
@@ -948,6 +973,7 @@ public class DownSide extends HBox {
                 }
             });
             btNo.setOnAction(e -> {
+                Platform.runLater(() -> addReports("Player " + player.getPlayerNumber() + " rejected player " + p.getPlayerNumber() + "'s trade request."));
                 p.getMyTrades().remove(player);
                 player.getMyTrades().remove(p);
                 player.setOnTradeRequest(player.getOnTradeRequest() - 1);
@@ -974,6 +1000,61 @@ public class DownSide extends HBox {
                 }
             });
         }
+    }
+    // -------------------------------------------------------------
+    // -------------------------------------------------------------
+    // -------------------------------------------------------------
+    public void report(){
+        if(board.getGameStoppage()){
+            errorSound.stop();
+            errorSound.play();
+            return;
+        }
+        FadeTransition fadeIn = new FadeTransition();
+        FadeTransition fadeOut = new FadeTransition();
+        VBox vBox = new VBox(20);
+        fadeOut.setNode(board.getCurrentPane());
+        fadeOut.setDuration(Duration.millis(1000));
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeIn.setNode(board.getCurrentPane());
+        fadeIn.setDuration(Duration.millis(1000));
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeOut.play();
+        fadeOut.setOnFinished(e -> {
+            board.getCurrentPane().getChildren().clear();
+            board.getCurrentPane().setCenter(vBox);
+            fadeIn.play();
+        });
+        Button btOK = new Button("Ok");
+        btOK.setPrefSize(100, 50);
+        btOK.setFont(Font.font("Roboto", FontWeight.BOLD, 17));
+        btOK.setStyle("-fx-background-color: lightblue; -fx-border-color: black;");
+        vBox.setAlignment(Pos.CENTER);
+        vBox.getChildren().addAll(reports, btOK);
+        Node oldLeft = board.getCurrentPane().getLeft();
+        Node oldCenter = board.getCurrentPane().getCenter();
+        Node oldTop = board.getCurrentPane().getTop();
+        Node oldRight = board.getCurrentPane().getRight();
+        Node oldBottom = board.getCurrentPane().getBottom();
+        btOK.setOnAction(e -> {
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.play();
+            fadeOut.setOnFinished(event -> {
+                board.getCurrentPane().setLeft(oldLeft);
+                board.getCurrentPane().setCenter(oldCenter);
+                board.getCurrentPane().setTop(oldTop);
+                board.getCurrentPane().setRight(oldRight);
+                board.getCurrentPane().setRight(oldRight);
+                board.getCurrentPane().setBottom(oldBottom);
+                board.getCurrentPane().getChildren().add(auditor);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+        });
     }
     // -------------------------------------------------------------
     // -------------------------------------------------------------
@@ -1089,7 +1170,7 @@ public class DownSide extends HBox {
         for(int i=0; i<board.getMap().getPlayers().size(); i++)
             lastResourcesCount.add(board.getMap().getPlayers().get(i).getMyCards().size());
         for(Player player: board.getMap().getPlayers()){
-            if(player.getMyCards().size() <= 7)continue;
+            if((player.getRole() == PlayerRole.The_VC_Funded && player.getMyCards().size() <= 9) || (player.getRole() != PlayerRole.The_VC_Funded && player.getMyCards().size() <= 7))continue;
             else onTax++;
             VBox paneForTitles = new VBox(10);
             TextField number = new TextField("Player " + player.getPlayerNumber() + ": 0");
@@ -1314,5 +1395,17 @@ public class DownSide extends HBox {
 
     public void setMoveAuditor(boolean moveAuditor) {
         this.moveAuditor = moveAuditor;
+    }
+    public void addReports(String text){
+        reports.appendText(text + "\n");
+    }
+    public void setSectorNumber(int sectorNumber){
+        this.sectorNumber = sectorNumber;
+    }
+    public int getSectorNumber(){
+        return sectorNumber;
+    }
+    public TextArea getTextArea(){
+        return reports;
     }
 }

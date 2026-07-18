@@ -1,11 +1,13 @@
 package util;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Handle_TurningGame {
+public class Handle_TurningGame implements Serializable {
     private int numberOfPlayers;
     private int currentPlayer = 1;
     private ArrayList<Player> players;
     private boolean isTurning_Game = false;
+
     public Handle_TurningGame(ArrayList<Player> players){
         this.numberOfPlayers = players.size();
         this.players = players;

@@ -1,5 +1,6 @@
 package util;
 import javafx.stage.Stage;
+import save_and_load.Save;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -12,5 +13,10 @@ public class MainClass extends Application {
         Scene scene = new Scene(currentPane, 900, 650);
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(e -> {
+            if(gameInitiallization.getBoard() != null)
+                new Thread(() -> new Save(gameInitiallization.getBoard())).start();
+            
+        });
     }
 }
