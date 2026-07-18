@@ -217,19 +217,22 @@ public class TopSide extends HBox {
                         title.setText(Integer.toString(market.getCards().get(1).getPrice()) + " Capitals");
                     break;
                 case Data:
-                    title.setText(Integer.toString(market.getCards().get(2).getPrice()) + " Capitals");
-                    break;
-                case Patent:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
                         title.setText(Integer.toString(market.getCards().get(2).getPrice() - 1) + " Capitals");
                     else
                         title.setText(Integer.toString(market.getCards().get(2).getPrice()) + " Capitals");
                     break;
-                case Talent:
+                case Patent:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
                         title.setText(Integer.toString(market.getCards().get(3).getPrice() - 1) + " Capitals");
                     else
                         title.setText(Integer.toString(market.getCards().get(3).getPrice()) + " Capitals");
+                    break;
+                case Talent:
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        title.setText(Integer.toString(market.getCards().get(4).getPrice() - 1) + " Capitals");
+                    else
+                        title.setText(Integer.toString(market.getCards().get(4).getPrice()) + " Capitals");
                     break;
                 case Null:
                     break;
@@ -263,6 +266,7 @@ public class TopSide extends HBox {
                 currentPane.setTop(oldTop);
                 currentPane.setRight(oldRight);
                 currentPane.setBottom(oldBottom);
+                board.getCurrentPane().getChildren().add(board.getDownSide().getAuditor());
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
                 fadeIn.play();
