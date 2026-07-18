@@ -278,35 +278,35 @@ public class DownSide extends HBox {
             switch(resource.getType()){
                 case Capital:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                        price = market.getCards().get(0).getPrice() - 1;
+                        price = (price == 0) ? 0 : (market.getCards().get(0).getPrice() - 1);
                     else
                         price = market.getCards().get(0).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Cloud:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                        price = market.getCards().get(1).getPrice() - 1;
+                        price = (price == 0) ? 0 : (market.getCards().get(1).getPrice() - 1);
                     else
                         price = market.getCards().get(1).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Data:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                        price = market.getCards().get(2).getPrice() - 1;
+                        price = (price == 0) ? 0 : (market.getCards().get(2).getPrice() - 1);
                     else
                         price = market.getCards().get(2).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Patent:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                        price = market.getCards().get(3).getPrice() - 1;
+                        price = (price == 0) ? 0 : (market.getCards().get(3).getPrice() - 1);
                     else
                         price = market.getCards().get(3).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
                     break;
                 case Talent:
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                        price = market.getCards().get(4).getPrice() - 1;
+                        price = (price == 0) ? 0 : (market.getCards().get(4).getPrice() - 1);
                     else
                         price = market.getCards().get(4).getPrice();
                     title.setText(Integer.toString(price) + " Capitals");
@@ -338,56 +338,59 @@ public class DownSide extends HBox {
                 }));
                 textField.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
                 writingAnimation.setOnFinished(event -> motivateSign.play());
+                switch(resource.getType()){
+                    case Capital:
+                        if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                            price = (price == 0) ? 0 : (market.getCards().get(0).getPrice() - 1);
+                        else
+                            price = market.getCards().get(0).getPrice();
+                        title.setText(Integer.toString(price) + " Capitals");
+                        break;
+                    case Cloud:
+                        if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                            price = (price == 0) ? 0 : (market.getCards().get(1).getPrice() - 1);
+                        else
+                            price = market.getCards().get(1).getPrice();
+                        title.setText(Integer.toString(price) + " Capitals");
+                        break;
+                    case Data:
+                        if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                            price = (price == 0) ? 0 : (market.getCards().get(2).getPrice() - 1);
+                        else
+                            price = market.getCards().get(2).getPrice();
+                        title.setText(Integer.toString(price) + " Capitals");
+                        break;
+                    case Patent:
+                        if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                            price = (price == 0) ? 0 : (market.getCards().get(3).getPrice() - 1);
+                        else
+                            price = market.getCards().get(3).getPrice();
+                        title.setText(Integer.toString(price) + " Capitals");
+                        break;
+                    case Talent:
+                        if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                            price = (price == 0) ? 0 : (market.getCards().get(4).getPrice() - 1);
+                        else
+                            price = market.getCards().get(4).getPrice();
+                        title.setText(Integer.toString(price) + " Capitals");
+                        break;
+                    case Null:
+                        break;
+                }
                 if(player.getCapitals() >= price){
                     index = 0;
                     status = "Resource '" + resource.getType().name() + "' is bought by you!";
-                    Platform.runLater(() -> addReports("Player " + player.getPlayerNumber() + " bought a '" + resource.getType().name() + "' resource."));
                     writingAnimation.setCycleCount(status.length());
                     writingAnimation.play();
-                    player.deleteCapitals(price);
+                    if(player.getRole() == PlayerRole.The_Hacker_CEO)
+                        player.deleteCapitals(price - 1);
+                    else 
+                        player.deleteCapitals(price);
                     player.getMyCards().add(resource);
                     vBox.getChildren().remove(1);
                     vBox.getChildren().add(1, drawResources(resources, player));
                     market.IncreasePrice(resource.getType());
-                    switch(resource.getType()){
-                        case Capital:
-                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                                price = market.getCards().get(0).getPrice() - 1;
-                            else
-                                price = market.getCards().get(0).getPrice();
-                            title.setText(Integer.toString(price) + " Capitals");
-                            break;
-                        case Cloud:
-                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                                price = market.getCards().get(1).getPrice() - 1;
-                            else
-                                price = market.getCards().get(1).getPrice();
-                            title.setText(Integer.toString(price) + " Capitals");
-                            break;
-                        case Data:
-                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                                price = market.getCards().get(2).getPrice() - 1;
-                            else
-                                price = market.getCards().get(2).getPrice();
-                            title.setText(Integer.toString(price) + " Capitals");
-                            break;
-                        case Patent:
-                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                                price = market.getCards().get(3).getPrice() - 1;
-                            else
-                                price = market.getCards().get(3).getPrice();
-                            title.setText(Integer.toString(price) + " Capitals");
-                            break;
-                        case Talent:
-                            if(player.getRole() == PlayerRole.The_Hacker_CEO)
-                                price = market.getCards().get(4).getPrice() - 1;
-                            else
-                                price = market.getCards().get(4).getPrice();
-                            title.setText(Integer.toString(price) + " Capitals");
-                            break;
-                        case Null:
-                            break;
-                    }
+                    title.setText(Integer.toString(price + 1) + " Capitals");
                     Platform.runLater(() -> board.getLeftSide().drawMyCards(handle_TurningGame.getCurrentPlayer()));
                 }else{
                     errorSound.stop();
@@ -431,6 +434,7 @@ public class DownSide extends HBox {
             });
         });
     }
+    
     // -------------------------------------------------------------
     // -------------------------------------------------------------
     // -------------------------------------------------------------
