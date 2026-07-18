@@ -6,6 +6,7 @@ import java.util.Map;
 import cards.*;
 import java.util.HashMap;
 import javafx.scene.paint.Color;
+import exception.*;
 
 public class Player implements Serializable {
     private int score = -1;
@@ -75,7 +76,10 @@ public class Player implements Serializable {
         }
         return count;
     }
-    public void deleteCapitals(int count){
+    public void deleteCapitals(int count) throws InsufficientResourceException{
+        if(getCapitalCount() < count){
+            throw new InsufficientResourceException();
+        }
         while(count>0){
             for(ResourceCard card: myCards){
                 if(card.getType() == ProductionResources.Capital){

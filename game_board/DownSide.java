@@ -28,6 +28,7 @@ import javafx.scene.image.ImageView;
 import javafx.animation.FadeTransition;
 import util.*;
 import type.*;
+import exception.*;
 
 public class DownSide extends HBox {
     private Handle_TurningGame handle_TurningGame;
@@ -128,7 +129,7 @@ public class DownSide extends HBox {
         btReport.setOnAction(e -> report());
         this.getChildren().add(3, btReport);
     }
-    public void drawAuditor() throws InvalidSectorException {
+    public void drawAuditor() {
         auditorBack = new Rectangle();
         auditor.setFitWidth(40);
         auditor.setFitHeight(40);
@@ -205,7 +206,7 @@ public class DownSide extends HBox {
                         
                         auditor.relocate(startX, startY);
                         try () {
-                        throw new InvalidSectorException("Incorrect palce to set Auditor. Try another sector...");
+                            throw new InvalidSectorException("Invalid sector to set Auditor. Try another sector...");
                         } catch (InvalidSectorException e) {
                             Platform.runLater(() -> {
                                 board.getTopSide().drawStatusPanel(e.getMessage());
@@ -385,7 +386,7 @@ public class DownSide extends HBox {
                     case Null:
                         break;
                 }
-                if(player.getCapitals() >= price){
+                try{
                     index = 0;
                     status = "Resource '" + resource.getType().name() + "' is bought by you!";
                     writingAnimation.setCycleCount(status.length());
@@ -400,10 +401,10 @@ public class DownSide extends HBox {
                     market.IncreasePrice(resource.getType());
                     title.setText(Integer.toString(price + 1) + " Capitals");
                     Platform.runLater(() -> board.getLeftSide().drawMyCards(handle_TurningGame.getCurrentPlayer()));
-                }else{
-                    errorSound.stop();
-                    errorSound.play();
+                }catch(InsufficientResourceException ex){
+                    System.out.println(ex.getMessage());
                 }
+                
             });
             title.setFont(Font.font("Roboto", FontWeight.BOLD, 15));
             paneForResource.getChildren().addAll(image, title, btBuy);

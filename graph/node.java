@@ -128,7 +128,7 @@ public class Node extends Pane{
                 }); // UI update
             }
         }
-        else try () {
+        else try {
             if(handle_TurningGame.isTurning_Game() && board.getRightSide().getDicesRolled()){
             currentPlayer = handle_TurningGame.getCurrentPlayer();
             cards = currentPlayer.getMyCards();
@@ -176,10 +176,10 @@ public class Node extends Pane{
             errorSound.play();
         }
     } catch (InvalidPlacementException e) {
-        Platform.runLater(() -> {
-            board.getTopSide().drawStatusPanel(e.getMessage());
-        }); // UI update
-    }
+            Platform.runLater(() -> {
+                board.getTopSide().drawStatusPanel(e.getMessage());
+            }); // UI update
+        }
     }
     public void drawUnicorn(){
         if(board.getGameStoppage() || board.getDownSide().getMoveAuditor() || handle_TurningGame.getCurrentPlayer().getOnTradeRequest() > 0 || this.nodeMVP.GetShape().getFill() != handle_TurningGame.getCurrentPlayer().getColor()){
