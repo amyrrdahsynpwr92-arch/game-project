@@ -128,7 +128,7 @@ public class DownSide extends HBox {
         btReport.setOnAction(e -> report());
         this.getChildren().add(3, btReport);
     }
-    public void drawAuditor(){
+    public void drawAuditor() throws InvalidSectorException {
         auditorBack = new Rectangle();
         auditor.setFitWidth(40);
         auditor.setFitHeight(40);
@@ -202,7 +202,15 @@ public class DownSide extends HBox {
                         }
                         break;
                     }else{
+                        
                         auditor.relocate(startX, startY);
+                        try () {
+                        throw new InvalidSectorException("Incorrect palce to set Auditor. Try another sector...");
+                        } catch (InvalidSectorException e) {
+                            Platform.runLater(() -> {
+                                board.getTopSide().drawStatusPanel(e.getMessage());
+                            }); // UI update
+                        }
                     }
                 }
             }
