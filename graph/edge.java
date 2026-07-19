@@ -1,6 +1,7 @@
 package graph;
 import java.util.ArrayList;
 import cards.*;
+import exception.InvalidPlacementException;
 import game_board.DrawBoard;
 import util.*;
 import javafx.scene.media.MediaPlayer;
@@ -49,8 +50,9 @@ public class Edge extends Line {
         Patent patent = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
         if(handle_preGame.isPreGame()){
-            currentPlayer = handle_preGame.getCurrentPlayer();
-            if(validate()){
+            try{
+                currentPlayer = handle_preGame.getCurrentPlayer();
+                validate();
                 handle_preGame.NotifyPartnership();
                 this.setStroke(handle_preGame.getCurrentColor());
                 this.setStrokeWidth(10);
@@ -66,9 +68,12 @@ public class Edge extends Line {
                     }
                 });
                 undoAction.addStage(this, currentPlayer);
-            }else{
-                errorSound.stop(); // it may is playing already
+            }catch (InvalidPlacementException e) {
+                errorSound.stop();
                 errorSound.play();
+                Platform.runLater(() -> {
+                    board.getTopSide().drawStatusPanel(e.getMessage());
+                });
             }
         }
         else if(handle_TurningGame.isTurning_Game() && board.getRightSide().getDicesRolled()){
@@ -83,43 +88,51 @@ public class Edge extends Line {
                     break;
                 }
             }
-            // System.out.println(validate());
-            if(capital != null && patent != null && validate()){
-                this.setStroke(currentPlayer.getColor());
-                this.setStrokeWidth(10);
-                cards.remove(capital);
-                cards.remove(patent);
-                Platform.runLater(() -> board.getLeftSide().drawMyCards(currentPlayer)); 
-                currentPlayer.setMyCards(cards);
-                hasPartnership = true;
-                undoAction.addStage(this, currentPlayer);
-                if(board.getMap().getLongestPath().bfs(this)){
-                    currentPlayer.setScore(currentPlayer.getScore() + 2);
-                    this.giveScore = true;
+            if(capital != null && patent != null){
+                try{
+                    validate();
+                    this.setStroke(currentPlayer.getColor());
+                    this.setStrokeWidth(10);
+                    cards.remove(capital);
+                    cards.remove(patent);
+                    Platform.runLater(() -> board.getLeftSide().drawMyCards(currentPlayer)); 
+                    currentPlayer.setMyCards(cards);
+                    hasPartnership = true;
+                    undoAction.addStage(this, currentPlayer);
+                    if(board.getMap().getLongestPath().bfs(this)){
+                        currentPlayer.setScore(currentPlayer.getScore() + 2);
+                        this.giveScore = true;
+                        Platform.runLater(() -> {
+                            board.getLeftSide().drawPlayersScore();
+                            board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " is awarded 2 points for having the longest sequance of partnerships.");
+                        });
+                    }
+                }catch (InvalidPlacementException e) {
+                    errorSound.stop();
+                    errorSound.play();
                     Platform.runLater(() -> {
-                        board.getLeftSide().drawPlayersScore();
-                        board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " is awarded 2 points for having the longest sequance of partnerships.");
+                        board.getTopSide().drawStatusPanel(e.getMessage());
                     });
                 }
             }else{
-                // System.out.println("here");
                 errorSound.stop(); // it may is playing already
                 errorSound.play();
             }
         }
     }
-    private boolean validate(){
-        if(this.hasPartnership)return false;
+    private void validate() throws InvalidPlacementException {
+        if(this.hasPartnership)
+            throw new InvalidPlacementException("Invalid place to set Partnership. Try again...");
         Color playerColor = currentPlayer.getColor();
         if((start.HasMVP() && playerColor == (start.getNodeMVP().GetShape()).getFill()) || (end.HasMVP() && playerColor == (end.getNodeMVP().GetShape()).getFill())){
             if(handle_TurningGame.isTurning_Game()){
                 start.addPartnership(this);
                 end.addPartnership(this);
-                return true;   
+                return; 
             }else if(handle_preGame.getTurn() == 2){
                 start.addPartnership(this);
                 end.addPartnership(this);
-                return true;
+                return;
             }
         }
         for(Edge edge: start.getLinkedPartnerships()){
@@ -127,12 +140,12 @@ public class Edge extends Line {
                 if(handle_TurningGame.isTurning_Game()){
                     start.addPartnership(this);
                     end.addPartnership(this);
-                    return true;
+                    return;
                 }
                 else if(handle_preGame.getTurn() == 2){
                     start.addPartnership(this);
                     end.addPartnership(this);
-                    return true;
+                    return;
                 }
             }
         }
@@ -141,16 +154,16 @@ public class Edge extends Line {
                 if(handle_TurningGame.isTurning_Game()){
                     start.addPartnership(this);
                     end.addPartnership(this);
-                    return true;
+                    return;
                 }
                 else if(handle_preGame.getTurn() == 2){
                     start.addPartnership(this);
                     end.addPartnership(this);
-                    return true;
+                    return;
                 }
             }
         }
-        return false;
+        throw new InvalidPlacementException("Invalid place to put Partnership. Try again...");
     }
     public void deletePartnership(Player player){
         this.setStrokeWidth(6);

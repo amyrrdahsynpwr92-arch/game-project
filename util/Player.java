@@ -78,7 +78,7 @@ public class Player implements Serializable {
     }
     public void deleteCapitals(int count) throws InsufficientResourceException{
         if(getCapitalCount() < count){
-            throw new InsufficientResourceException();
+            throw new InsufficientResourceException("You don't have sufficient resources to buy.");
         }
         while(count>0){
             for(ResourceCard card: myCards){

@@ -203,14 +203,13 @@ public class DownSide extends HBox {
                         }
                         break;
                     }else{
-                        
                         auditor.relocate(startX, startY);
-                        try () {
-                            throw new InvalidSectorException("Invalid sector to set Auditor. Try another sector...");
-                        } catch (InvalidSectorException e) {
+                        try{
+                            throw new InvalidSectorException("Invalid sector to put Auditor. Try another sector...");
+                        } catch (InvalidSectorException ex) {
                             Platform.runLater(() -> {
-                                board.getTopSide().drawStatusPanel(e.getMessage());
-                            }); // UI update
+                                board.getTopSide().drawStatusPanel(ex.getMessage());
+                            });
                         }
                     }
                 }
@@ -387,14 +386,14 @@ public class DownSide extends HBox {
                         break;
                 }
                 try{
-                    index = 0;
-                    status = "Resource '" + resource.getType().name() + "' is bought by you!";
-                    writingAnimation.setCycleCount(status.length());
-                    writingAnimation.play();
                     if(player.getRole() == PlayerRole.The_Hacker_CEO)
                         player.deleteCapitals(price - 1);
                     else 
                         player.deleteCapitals(price);
+                    index = 0;
+                    status = "Resource '" + resource.getType().name() + "' is bought by you!";
+                    writingAnimation.setCycleCount(status.length());
+                    writingAnimation.play();
                     player.getMyCards().add(resource);
                     vBox.getChildren().remove(1);
                     vBox.getChildren().add(1, drawResources(resources, player));
@@ -402,7 +401,12 @@ public class DownSide extends HBox {
                     title.setText(Integer.toString(price + 1) + " Capitals");
                     Platform.runLater(() -> board.getLeftSide().drawMyCards(handle_TurningGame.getCurrentPlayer()));
                 }catch(InsufficientResourceException ex){
-                    System.out.println(ex.getMessage());
+                    errorSound.stop();
+                    errorSound.play();
+                    index = 0;
+                    status = ex.getMessage();
+                    writingAnimation.setCycleCount(status.length());
+                    writingAnimation.play();
                 }
                 
             });
@@ -1390,6 +1394,7 @@ public class DownSide extends HBox {
         auditor.setOpacity(1.0);
         sector.setHasAuditor(true);
         taxText.setText("");
+        sectorNumber = -1;
         auditorBack.setOnMouseClicked(e -> {});
         Platform.runLater(() -> {
             board.getTopSide().drawStatusPanel("sum equals to 7. move auditor piece to any possible sector");

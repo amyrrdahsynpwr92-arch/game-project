@@ -87,33 +87,80 @@ public class Node extends Pane{
         Data data = null;
         ArrayList<ResourceCard> cards = new ArrayList<>();
         if(handle_preGame.isPreGame()){
-            handle_preGame.NotifyMVP();
-            currentPlayer = handle_preGame.getCurrentPlayer();
-            try() {
-                if(validate(row, col)){
-                    cards = currentPlayer.getMyCards();
-                    nodeMVP.GetShape().setFill(handle_preGame.getCurrentColor());
+            try {
+                currentPlayer = handle_preGame.getCurrentPlayer();
+                validate(row, col);
+                handle_preGame.NotifyMVP();
+                cards = currentPlayer.getMyCards();
+                nodeMVP.GetShape().setFill(handle_preGame.getCurrentColor());
+                this.getChildren().clear();
+                this.getChildren().add(nodeMVP);
+                nodeMVP.setOnMouseClicked(e -> drawUnicorn());
+                currentPlayer.setScore(currentPlayer.getScore() + 1);
+                Platform.runLater(() -> { // UI update 
+                    board.getLeftSide().drawPlayersScore();
+                    board.getTopSide().drawPlayerBox(currentPlayer.getPlayerNumber());
+                    board.getTopSide().drawStatusPanel("player " + Integer.toString(currentPlayer.getPlayerNumber()) + "! please put a Partnership");
+                }); 
+                this.hasMVP = true;
+                handle_preGame.setTurn(2);
+                undoAction.addStage(this, currentPlayer);
+                for(Sector sector: sectors){
+                    if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
+                        if(!(sector.getResource() instanceof Null || sector.HasAuditor())){
+                            cards.add(sector.getResource());
+                            sector.getMvpPlayers().add(currentPlayer);
+                            Platform.runLater(() -> board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " recieved a '" + sector.getResource().getType().name() + "' resource from a sector."));
+                        }
+                }
+                Platform.runLater(() -> {
+                    board.getRightSide().drawTotalCards();
+                    board.getLeftSide().drawMyCards(currentPlayer);
+                });
+            } catch (InvalidPlacementException e) {
+                errorSound.stop(); // it may is playing already
+                errorSound.play();
+                Platform.runLater(() -> {
+                    board.getTopSide().drawStatusPanel(e.getMessage());
+                });
+            }
+        }
+        else if(handle_TurningGame.isTurning_Game() && board.getRightSide().getDicesRolled()){
+            try{
+                currentPlayer = handle_TurningGame.getCurrentPlayer();
+                validate(row, col);
+                cards = currentPlayer.getMyCards();
+                for(ResourceCard card: cards){
+                    if(card instanceof Capital)
+                        capital = (Capital)card;
+                    else if(card instanceof Talent)
+                        talent = (Talent)card;
+                    else if(card instanceof Cloud)
+                        cloud = (Cloud)card;
+                    else if(card instanceof Data)
+                        data = (Data)card;
+                    if(capital != null && talent != null && cloud != null && data != null)
+                        break;
+                }
+                if(capital != null && talent != null && cloud != null && data != null){
                     this.getChildren().clear();
                     this.getChildren().add(nodeMVP);
                     nodeMVP.setOnMouseClicked(e -> drawUnicorn());
+                    this.hasMVP = true;  
+                    cards.remove(capital);
+                    cards.remove(talent);
+                    cards.remove(cloud);
+                    cards.remove(data);
                     currentPlayer.setScore(currentPlayer.getScore() + 1);
-                    Platform.runLater(() -> { // UI update 
-                        board.getLeftSide().drawPlayersScore();
-                        board.getTopSide().drawPlayerBox(currentPlayer.getPlayerNumber());
-                        board.getTopSide().drawStatusPanel("player " + Integer.toString(currentPlayer.getPlayerNumber()) + "! please put a Partnership");
-                    }); 
-                    this.hasMVP = true;
-                    handle_preGame.setTurn(2);
+                    Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
+                    nodeMVP.GetShape().setFill(currentPlayer.getColor());
                     undoAction.addStage(this, currentPlayer);
                     for(Sector sector: sectors){
                         if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                            if(!(sector.getResource() instanceof Null || sector.HasAuditor())){
-                                cards.add(sector.getResource());
+                            if(!(sector.getResource() instanceof Null)){
                                 sector.getMvpPlayers().add(currentPlayer);
-                                Platform.runLater(() -> board.getDownSide().addReports("Player " + currentPlayer.getPlayerNumber() + " recieved a '" + sector.getResource().getType().name() + "' resource from a sector."));
                             }
                     }
-                    
                     Platform.runLater(() -> {
                         board.getRightSide().drawTotalCards();
                         board.getLeftSide().drawMyCards(currentPlayer);
@@ -122,63 +169,13 @@ public class Node extends Pane{
                     errorSound.stop(); // it may is playing already
                     errorSound.play();
                 }
-            } catch (InvalidPlacementException e) {
+            }catch (InvalidPlacementException e) {
+                errorSound.stop();
+                errorSound.play();
                 Platform.runLater(() -> {
                     board.getTopSide().drawStatusPanel(e.getMessage());
-                }); // UI update
-            }
-        }
-        else try {
-            if(handle_TurningGame.isTurning_Game() && board.getRightSide().getDicesRolled()){
-            currentPlayer = handle_TurningGame.getCurrentPlayer();
-            cards = currentPlayer.getMyCards();
-            for(ResourceCard card: cards){
-                if(card instanceof Capital)
-                    capital = (Capital)card;
-                else if(card instanceof Talent)
-                    talent = (Talent)card;
-                else if(card instanceof Cloud)
-                    cloud = (Cloud)card;
-                else if(card instanceof Data)
-                    data = (Data)card;
-                if(capital != null && talent != null && cloud != null && data != null)
-                    break;
-            }
-            if((capital != null && talent != null && cloud != null && data != null) && validate(row, col)){
-                this.getChildren().clear();
-                this.getChildren().add(nodeMVP);
-                nodeMVP.setOnMouseClicked(e -> drawUnicorn());
-                this.hasMVP = true;  
-                cards.remove(capital);
-                cards.remove(talent);
-                cards.remove(cloud);
-                cards.remove(data);
-                currentPlayer.setScore(currentPlayer.getScore() + 1);
-                Platform.runLater(() -> board.getLeftSide().drawPlayersScore()); // UI update
-                nodeMVP.GetShape().setFill(currentPlayer.getColor());
-                undoAction.addStage(this, currentPlayer);
-                for(Sector sector: sectors){
-                    if((sector.getRow() == this.row || sector.getRow() == this.row-1) && (sector.getCol() == this.col || sector.getCol() == this.col-1))
-                        if(!(sector.getResource() instanceof Null)){
-                            sector.getMvpPlayers().add(currentPlayer);
-                        }
-                }
-                Platform.runLater(() -> {
-                    board.getRightSide().drawTotalCards();
-                    board.getLeftSide().drawMyCards(currentPlayer);
                 });
-            }else{
-                errorSound.stop(); // it may is playing already
-                errorSound.play();
             }
-        }else{
-            errorSound.stop(); // it may is playing already
-            errorSound.play();
-        }
-    } catch (InvalidPlacementException e) {
-            Platform.runLater(() -> {
-                board.getTopSide().drawStatusPanel(e.getMessage());
-            }); // UI update
         }
     }
     public void drawUnicorn(){
@@ -275,14 +272,12 @@ public class Node extends Pane{
             }
         }
     }
-    public boolean validate(int row, int col) throws InvalidPlacementException {
+    public void validate(int row, int col) throws InvalidPlacementException {
         if((col>0 && nodes[col-1][row].hasMVP) || (col<n-1 && nodes[col+1][row].hasMVP) || (row>0 && nodes[col][row-1].hasMVP) || (row<n-1 && nodes[col][row+1].hasMVP)) {
-            throw new InvalidPlacementException("Incorrect place to set MVP. Try again...");
-            return false;
+            throw new InvalidPlacementException("Invalid place to put MVP. Try again...");
         }
         if(handle_preGame.isPreGame() && handle_preGame.getTurn() == 2)
-            return false;
-        return true;
+            throw new InvalidPlacementException("Invalid place to put MVP. Try again...");
     }
     public void deleteMVP(Player player){
         this.getChildren().clear();

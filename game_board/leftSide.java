@@ -101,7 +101,10 @@ public class LeftSide extends VBox {
         text.setFill(Color.WHITE);
         text.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
         pane.getChildren().add(text);
-        String[] playerTitles = {"Player 1", "Player 2", "Player 3", "Player 4"};
+        String[] playerTitles = new String[players.size()];
+        for(int i=0; i<players.size(); i++){
+            playerTitles[i] = "Player " + (i+1);
+        }
         ObservableList<String> items = FXCollections.observableArrayList(playerTitles);
         ComboBox<String> cmb = new ComboBox<>();
         cmb.setItems(items);

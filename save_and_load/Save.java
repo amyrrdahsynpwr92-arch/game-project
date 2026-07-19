@@ -4,7 +4,6 @@ import util.*;
 import java.util.*;
 import java.io.*;
 import graph.*;
-import cards.*;
 
 public class Save {
     private ObjectOutputStream toFile;

@@ -46,11 +46,6 @@ public class UndoAction {
             actions.remove(actions.size() - 1);
             numberOfMoves--;
         }
-        // else if(actions.get(actions.size() - 1) instanceof Player){
-        //     ((Player)actions.get(actions.size() - 1)).backToOldCards();
-        //     actions.remove(actions.size() - 1);
-        //     numberOfMoves--;
-        // }
     }
     public void addStage(Object O, Player player){
         if(this.player != player || this.player == null){

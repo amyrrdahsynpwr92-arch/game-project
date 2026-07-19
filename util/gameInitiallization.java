@@ -144,9 +144,6 @@ public class GameInitiallization{
         public SetN(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 27));
-            //backText.setFill(Color.GREEN);
-            // backText.setArcWidth(30);
-            // backText.setArcHeight(30);
             backText.setFitWidth(400);
             backText.setFitHeight(150);
             paneForText.getChildren().addAll(backText, text);
@@ -164,7 +161,7 @@ public class GameInitiallization{
             this.setPadding(new Insets(40, 0, 40, 0));
             this.getChildren().addAll(paneForText, textField); 
             textField.setOnAction(e -> {
-                if(Integer.parseInt(textField.getText()) >= 5 && Integer.parseInt(textField.getText()) <= 10){
+                if(textField.getText().matches("\\d+") && Integer.parseInt(textField.getText()) >= 5 && Integer.parseInt(textField.getText()) <= 10){
                     clickSound.play();
                     fadeTransition.setFromValue(1.0);
                     fadeTransition.setToValue(0.0);
@@ -195,9 +192,6 @@ public class GameInitiallization{
         public SetPlayersNumber(){
             this.setSpacing(60);
             text.setFont(Font.font("Roboto", FontWeight.BOLD, 27));
-            // backText.setFill(Color.TURQUOISE);
-            // backText.setArcWidth(30);
-            // backText.setArcHeight(30);
             backText.setFitWidth(1000);
             backText.setFitHeight(120);
             bt1.setPrefSize(100, 50);
